@@ -2,16 +2,26 @@
   "use strict";
 
   // TODO add user settings
-  var consts = {
-    defaultTitle: "random variable"
-  };
   var settings = {
     appendElSpec: "#graph"
   };
   // define graphcreator object
-  var GraphCreator = function(svg, nodes, edges){
+  var GraphCreator = function(svg, nodes, edges, config){
     var thisGraph = this;
         thisGraph.idct = 0;
+
+    if (!config) {
+        config = {};
+    }
+
+    var default_config = GraphCreator.prototype.consts;
+    for (var key in default_config) {
+        if (default_config.hasOwnProperty(key) && !config.hasOwnProperty(key)) {
+            config[key] = default_config[key];
+        }
+    }
+
+    this.consts = config;
 
     thisGraph.nodes = nodes || [];
     thisGraph.edges = edges || [];
@@ -174,6 +184,7 @@
   };
 
   GraphCreator.prototype.consts =  {
+    defaultTitle: "random variable",
     selectedClass: "selected",
     connectClass: "connect-node",
     circleGClass: "conceptG",
@@ -423,6 +434,7 @@
   // mouseup on main svg
   GraphCreator.prototype.svgMouseUp = function(){
     var thisGraph = this,
+        consts = thisGraph.consts,
         state = thisGraph.state;
     if (state.justScaleTransGraph) {
       // dragged not clicked
