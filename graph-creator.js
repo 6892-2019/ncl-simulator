@@ -190,11 +190,16 @@
     nodeGClass: "conceptG",
     graphClass: "graph",
     activeEditId: "active-editing",
+    editingOpacity: 0.4,
     BACKSPACE_KEY: 8,
     DELETE_KEY: 46,
     ENTER_KEY: 13,
     nodeRadius: 50,
-    nodeMargin: 7
+    nodeMargin: 7,
+    charWidthPixel: 12,
+    lineHeightPixel: 15,
+    lowerTextRatio: 1.60,
+    upperTextRatio: 1.68
   };
 
   /* PROTOTYPE FUNCTIONS */
@@ -235,16 +240,78 @@
 
   /* insert svg line breaks: taken from http://stackoverflow.com/questions/13241475/how-do-i-include-newlines-in-labels-in-d3-charts */
   GraphCreator.prototype.insertTitleLinebreaks = function (gEl, title) {
-    var words = title.split(/\s+/g),
-        nwords = words.length;
+    var lineHeightPixel = this.consts.lineHeightPixel;
+    var charWidthPixel = this.consts.charWidthPixel;
+
+    var lowerTextRatio = this.consts.lowerTextRatio;
+    var upperTextRatio = this.consts.upperTextRatio;
+
+    var nodeMargin = this.consts.nodeMargin;
+
+    var lines = title.trim().split(/\s+/g);
+
+    while (1) {
+        var old_lines = lines;
+
+        // search the length of the longest line
+        var max_line_length = 0;
+        for (var i = 0; i < lines.length; i++) {
+            var l = lines[i].length;
+            if (l > max_line_length) {
+                max_line_length = l;
+            }
+        }
+
+        // try to put small lines in a single one
+        var new_lines = [];
+        var last_line_length = 0;
+        for (var i = 0; i < lines.length; i++) {
+            var l = lines[i].length;
+            if (last_line_length + l + 1 > max_line_length || new_lines.length === 0) {
+                new_lines.push(lines[i]);
+                last_line_length = l;
+            }
+            else {
+                new_lines[new_lines.length - 1] += (" " + lines[i]);
+                last_line_length += l + 1;
+            }
+        }
+        lines = new_lines;
+
+        var width  = charWidthPixel  * max_line_length;
+        var height = lineHeightPixel * lines.length;
+        var ratio  = width / height;
+
+
+        if (ratio > lowerTextRatio && ratio < upperTextRatio) { // good enough
+            break;
+        }
+        else if (ratio < lowerTextRatio) {  // too many lines, try to join them 
+            if (lines.length >= 2) { 
+                lines[0] = lines[0] + " " + lines[1]; // arbitrary
+                lines.splice(1, 1);
+                continue;
+            }
+            else {
+                break; // we don't have lines to join, finish here
+            }
+        }
+        else { // too few lines, try to revert the last join
+           lines = old_lines;
+           break; 
+        }
+
+        throw new Error("ups");
+    }
+
     var el = gEl.append("text")
           .attr("text-anchor","middle")
-          .attr("dy", "-" + (nwords-1)*7.5);
+          .attr("dy", -(lines.length-1)*(lineHeightPixel / 2) + nodeMargin);
 
-    for (var i = 0; i < words.length; i++) {
-      var tspan = el.append('tspan').text(words[i]);
+    for (var i = 0; i < lines.length; i++) {
+      var tspan = el.append('tspan').text(lines[i]);
       if (i > 0)
-        tspan.attr('x', 0).attr('dy', '15');
+        tspan.attr('x', 0).attr('dy', lineHeightPixel);
     }
   };
 
@@ -332,6 +399,11 @@
     var thisGraph= this,
         consts = thisGraph.consts,
         htmlEl = d3node.node();
+
+    var gnode = d3node.selectAll("rect");
+    var original_opacity = gnode.attr("opacity");
+    gnode.attr("opacity", thisGraph.consts.editingOpacity);
+
     d3node.selectAll("text").remove();
     var nodeBCR = htmlEl.getBoundingClientRect(),
         curScale = nodeBCR.width/consts.nodeRadius,
@@ -365,6 +437,7 @@
             d3.select(this.parentElement).remove();
 
             thisGraph.update_rectangle_size_based_on_text_size(d3node[0][0]);
+            gnode.attr("opacity", original_opacity);
           });
     return d3txt;
   };
