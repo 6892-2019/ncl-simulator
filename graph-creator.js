@@ -187,13 +187,14 @@
     defaultTitle: "random variable",
     selectedClass: "selected",
     connectClass: "connect-node",
-    circleGClass: "conceptG",
+    nodeGClass: "conceptG",
     graphClass: "graph",
     activeEditId: "active-editing",
     BACKSPACE_KEY: 8,
     DELETE_KEY: 46,
     ENTER_KEY: 13,
-    nodeRadius: 50
+    nodeRadius: 50,
+    nodeMargin: 7
   };
 
   /* PROTOTYPE FUNCTIONS */
@@ -362,6 +363,8 @@
             d.title = this.textContent;
             thisGraph.insertTitleLinebreaks(d3node, d.title);
             d3.select(this.parentElement).remove();
+
+            thisGraph.update_rectangle_size_based_on_text_size(d3node[0][0]);
           });
     return d3txt;
   };
@@ -541,7 +544,7 @@
     var newGs= thisGraph.gnodes.enter()
           .append("g");
 
-    newGs.classed(consts.circleGClass, true)
+    newGs.classed(consts.nodeGClass, true)
       .attr("transform", function(d){return "translate(" + d.x + "," + d.y + ")";})
       .on("mouseover", function(d){
         if (state.shiftNodeDrag){
@@ -559,8 +562,9 @@
       })
       .call(thisGraph.drag);
 
-    newGs.append("circle")
-      .attr("r", String(consts.nodeRadius));
+    newGs.append('rect')
+      .attr("width", String(consts.nodeRadius))
+      .attr("height", String(consts.nodeRadius));
 
     newGs.each(function(d){
       thisGraph.insertTitleLinebreaks(d3.select(this), d.title);
@@ -568,6 +572,23 @@
 
     // remove old nodes
     thisGraph.gnodes.exit().remove();
+
+    // Update the size of the nodes to match the size of its text
+    thisGraph.gnodes.each(function () {
+        thisGraph.update_rectangle_size_based_on_text_size(this);
+    });
+  };
+
+  // Given a "g" (group) dom element --a node--, change the size of its rect element to fit the size of its text.
+  GraphCreator.prototype.update_rectangle_size_based_on_text_size = function (g_dom_element) {
+      var nodeMargin = this.consts.nodeMargin;
+      d3.select(g_dom_element).selectAll("rect")
+        .attr("width", function(d) { return d3.select(this.parentNode).select("text")[0][0].getBBox().width + nodeMargin*2; })
+        .attr("height", function(d) { return d3.select(this.parentNode).select("text")[0][0].getBBox().height + nodeMargin*2; });
+      
+      d3.select(g_dom_element).selectAll("rect")
+        .attr("x", function(d) { return -d3.select(this).attr('width')/2; })
+        .attr("y", function(d) { return -d3.select(this).attr('height')/2; });
   };
 
   GraphCreator.prototype.zoomed = function(){
