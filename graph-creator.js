@@ -1,4 +1,4 @@
-document.onload = (function(d3, saveAs, Blob, undefined){
+(function(d3, saveAs, Blob, undefined){
   "use strict";
 
   // TODO add user settings
@@ -573,33 +573,27 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   };
 
 
+  var create_svg_helper = function create_svg_helper(el, width, height) {
+      var docEl = document.documentElement,
+          bodyEl = document.getElementsByTagName('body')[0];
 
-  /**** MAIN ****/
+      if (!width) {
+          width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth;
+      }
 
-  // warn the user when leaving
-  window.onbeforeunload = function(){
-    return "Make sure to save your graph locally before leaving :-)";
-  };
-
-  var docEl = document.documentElement,
-      bodyEl = document.getElementsByTagName('body')[0];
-
-  var width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth,
-      height =  window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight;
-
-  var xLoc = width/2 - 25,
-      yLoc = 100;
-
-  // initial node data
-  var nodes = [];
-  var edges = [];
-
-
-  /** MAIN SVG **/
-  var svg = d3.select(settings.appendElSpec).append("svg")
+      if (!height) {
+          height = window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight;
+      }
+  
+      var svg = d3.select(el).append("svg")
         .attr("width", width)
         .attr("height", height);
-  var graph = new GraphCreator(svg, nodes, edges);
-      graph.setIdCt(2);
-  graph.updateGraph();
+
+      return svg;
+  };
+
+  // export
+  window.GraphCreator = GraphCreator;
+  window.create_svg_helper = create_svg_helper;   
+
 })(window.d3, window.saveAs, window.Blob);
