@@ -196,10 +196,10 @@
     ENTER_KEY: 13,
     nodeRadius: 50,
     nodeMargin: 7,
-    charWidthPixel: 12,
+    charWidthPixel: 10,
     lineHeightPixel: 15,
     lowerTextRatio: 1.60,
-    upperTextRatio: 1.68
+    upperTextRatio: 4.0
   };
 
   /* PROTOTYPE FUNCTIONS */
@@ -245,34 +245,30 @@
 
     var lowerTextRatio = this.consts.lowerTextRatio;
     var upperTextRatio = this.consts.upperTextRatio;
+    var perfectTextRatio = lowerTextRatio + ((upperTextRatio - lowerTextRatio)/2);
 
     var nodeMargin = this.consts.nodeMargin;
 
-    var lines = title.trim().split(/\s+/g);
+    var words = title.trim().split(/\s+/g);
+    var lines = words;
+    var ratio = (charWidthPixel * lines.length) / (lineHeightPixel * 1);
+    var max_line_length = lines[0].length;
 
     while (1) {
         var old_lines = lines;
+        var old_ratio = ratio;
 
-        // search the length of the longest line
-        var max_line_length = 0;
-        for (var i = 0; i < lines.length; i++) {
-            var l = lines[i].length;
-            if (l > max_line_length) {
-                max_line_length = l;
-            }
-        }
-
-        // try to put small lines in a single one
+        // try to put small words in a single line
         var new_lines = [];
         var last_line_length = 0;
-        for (var i = 0; i < lines.length; i++) {
-            var l = lines[i].length;
+        for (var i = 0; i < words.length; i++) {
+            var l = words[i].length;
             if (last_line_length + l + 1 > max_line_length || new_lines.length === 0) {
-                new_lines.push(lines[i]);
+                new_lines.push(words[i]);
                 last_line_length = l;
             }
             else {
-                new_lines[new_lines.length - 1] += (" " + lines[i]);
+                new_lines[new_lines.length - 1] += (" " + words[i]);
                 last_line_length += l + 1;
             }
         }
@@ -286,22 +282,43 @@
         if (ratio > lowerTextRatio && ratio < upperTextRatio) { // good enough
             break;
         }
-        else if (ratio < lowerTextRatio) {  // too many lines, try to join them 
-            if (lines.length >= 2) { 
-                lines[0] = lines[0] + " " + lines[1]; // arbitrary
-                lines.splice(1, 1);
-                continue;
-            }
-            else {
+        else if (ratio == old_ratio) { // we didn't improved too much
+            break;
+        }
+        else if (ratio < lowerTextRatio) {  // too many lines, continue trying to join them 
+            if (lines.length < 2) { 
                 break; // we don't have lines to join, finish here
             }
         }
-        else { // too few lines, try to revert the last join
-           lines = old_lines;
+        else { // too few lines, try to revert the last join, if its ratio is better
+           if (Math.abs(old_ratio - perfectTextRatio) < Math.abs(ratio - perfectTextRatio)) {
+               lines = old_lines;
+           }
            break; 
         }
 
-        throw new Error("ups");
+        // search for two consecutive lines to join that sum the minimal length greather than the current maximum 
+        var min_joined_lines_length = lines[0].length + lines[1].length + 1;
+        var min_at = 0;
+        for (var i = 0; i < lines.length - 1; i++) {
+            var l = lines[i].length + lines[i+1].length + 1;
+            if (l > max_line_length && l < min_joined_lines_length) {
+                min_joined_lines_length = l;
+                min_at = i;
+            }
+        }
+
+        // join them
+        lines[min_at] = lines[min_at] + " " + lines[min_at+1];
+        lines.splice(min_at + 1, 1);
+
+        // update the max line length with the new line added
+        if (lines[min_at].length > max_line_length) {
+            max_line_length = lines[min_at].length;
+        }
+        else {
+            break; // this was my best effort, sorry 
+        }
     }
 
     var el = gEl.append("text")
@@ -416,8 +433,8 @@
           .append("foreignObject")
           .attr("x", nodeBCR.left + placePad )
           .attr("y", nodeBCR.top + placePad)
-          .attr("height", 2*useHW)
-          .attr("width", useHW)
+          .attr("height", 16*useHW)
+          .attr("width", 8*useHW)
           .append("xhtml:p")
           .attr("id", consts.activeEditId)
           .attr("contentEditable", "true")
