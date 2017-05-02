@@ -599,21 +599,25 @@
     });
     var gedges = thisGraph.gedges;
     // update existing gedges
-    gedges.style('marker-end', 'url(#end-arrow)')
+    gedges.style('marker-mid', 'url(#end-arrow)')
       .classed(consts.selectedClass, function(d){
         return d === state.selectedEdge;
       })
       .attr("d", function(d){
-        return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
+        var middle_x = (d.target.x - d.source.x) / 2 + d.source.x;
+        var middle_y = (d.target.y - d.source.y) / 2 + d.source.y;
+        return "M" + d.source.x + "," + d.source.y + "L" + middle_x + "," + middle_y + "L" + d.target.x + "," + d.target.y;
       });
 
     // add new gedges
     gedges.enter()
       .append("path")
-      .style('marker-end','url(#end-arrow)')
+      .style('marker-mid','url(#end-arrow)')
       .classed("link", true)
       .attr("d", function(d){
-        return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
+        var middle_x = (d.target.x - d.source.x) / 2 + d.source.x;
+        var middle_y = (d.target.y - d.source.y) / 2 + d.source.y;
+        return "M" + d.source.x + "," + d.source.y + "L" + middle_x + "," + middle_y + "L" + d.target.x + "," + d.target.y;
       })
       .on("mousedown", function(d){
         thisGraph.pathMouseDown.call(thisGraph, d3.select(this), d);
