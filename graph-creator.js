@@ -43,7 +43,6 @@
     defs.append('svg:marker')
       .attr('id', 'end-arrow')
       .attr('viewBox', '0 -5 10 10')
-      .attr('refX', "32")
       .attr('markerWidth', 3.5)
       .attr('markerHeight', 3.5)
       .attr('orient', 'auto')
