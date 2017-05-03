@@ -483,7 +483,7 @@
         return d.source === newEdge.source && d.target === newEdge.target;
       });
       if (!filtRes[0].length){
-        thisGraph.edges.push(newEdge);
+        thisGraph.addEdge(newEdge);
         thisGraph.updateGraph();
       }
     } else{
@@ -535,7 +535,7 @@
       // clicked not dragged from svg
       var xycoords = d3.mouse(thisGraph.svgG.node()),
           d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1]};
-      thisGraph.nodes.push(d);
+      thisGraph.addNode(d);
       thisGraph.updateGraph();
       // make title of text immediently editable
       var d3txt = thisGraph.changeTextOfNode(thisGraph.gnodes.filter(function(dval){
@@ -569,12 +569,11 @@
     case consts.DELETE_KEY:
       d3.event.preventDefault();
       if (selectedNode){
-        thisGraph.nodes.splice(thisGraph.nodes.indexOf(selectedNode), 1);
-        thisGraph.spliceLinksForNode(selectedNode);
+        thisGraph.deleteNodeAndItsEdges(selectedNode);
         state.selectedNode = null;
         thisGraph.updateGraph();
       } else if (selectedEdge){
-        thisGraph.edges.splice(thisGraph.edges.indexOf(selectedEdge), 1);
+        thisGraph.deleteEdge(selectedEdge);
         state.selectedEdge = null;
         thisGraph.updateGraph();
       }
@@ -696,6 +695,27 @@
     var x = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth;
     var y = window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight;
     svg.attr("width", x).attr("height", y);
+  };
+
+  GraphCreator.prototype.addNode = function (d) {
+    var thisGraph = this;
+    thisGraph.nodes.push(d);
+  };
+
+  GraphCreator.prototype.deleteNodeAndItsEdges = function (d) {
+    var thisGraph = this;
+    thisGraph.nodes.splice(thisGraph.nodes.indexOf(d), 1);
+    thisGraph.spliceLinksForNode(d);
+  };
+  
+  GraphCreator.prototype.addEdge = function(e) {
+    var thisGraph = this;
+    thisGraph.edges.push(e);
+  };
+
+  GraphCreator.prototype.deleteEdge = function (e) {
+    var thisGraph = this;
+    thisGraph.edges.splice(thisGraph.edges.indexOf(e), 1);
   };
 
 
