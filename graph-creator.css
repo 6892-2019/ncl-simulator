@@ -85,16 +85,17 @@ g.conceptG:hover rect{
 }
 
 g.selected rect{
-    fill: rgb(250, 232, 255);
+    fill: rgb(200, 238, 241);
+    stroke-width: 4px;
 }
 g.selected:hover rect{
-    fill: rgb(250, 232, 255);
+    fill: rgb(200, 238, 241);
 }
 
 path.link {
     fill: none;
     stroke: #333;
-    stroke-width: 6px;
+    stroke-width: 4px;
     cursor: default;
 }
 
@@ -115,5 +116,6 @@ path.link.hidden{
 }
 
 path.link.selected {
-    stroke: rgb(229, 172, 247);
+    stroke: rgb(94, 196, 204);
+    stroke-width: 6px;
 }
