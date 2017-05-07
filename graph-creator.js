@@ -1,4 +1,4 @@
-(function(d3, saveAs, Blob, undefined){
+(function(d3, saveAs, Blob, UndoManager){
   "use strict";
 
   // TODO add user settings
@@ -22,6 +22,7 @@
     }
 
     this.consts = config;
+    this.undo_manager = new UndoManager();
 
     thisGraph.nodes = nodes || [];
     thisGraph.edges = edges || [];
@@ -193,6 +194,8 @@
     BACKSPACE_KEY: 8,
     DELETE_KEY: 46,
     ENTER_KEY: 13,
+    UNDO_KEY: 90, // Z
+    REDO_KEY: 89, // Y
     nodeRadius: 50,
     nodeMargin: 7,
     charWidthPixel: 10,
@@ -331,17 +334,6 @@
     }
   };
 
-
-  // remove edges associated with a node
-  GraphCreator.prototype.spliceLinksForNode = function(node) {
-    var thisGraph = this,
-        toSplice = thisGraph.edges.filter(function(l) {
-      return (l.source === node || l.target === node);
-    });
-    toSplice.map(function(l) {
-      thisGraph.edges.splice(thisGraph.edges.indexOf(l), 1);
-    });
-  };
 
   GraphCreator.prototype.replaceSelectEdge = function(d3Path, edgeData){
     var thisGraph = this;
@@ -578,6 +570,22 @@
         thisGraph.updateGraph();
       }
       break;
+    case consts.UNDO_KEY:
+      if (d3.event.ctrlKey) {
+        d3.event.preventDefault();
+        console.log("Index before undo: " + thisGraph.undo_manager.getIndex());
+        thisGraph.undo_manager.undo();
+        thisGraph.updateGraph();
+      }
+      break;
+    case consts.REDO_KEY:
+      if (d3.event.ctrlKey) {
+        d3.event.preventDefault();
+        console.log("Index before redo: " + thisGraph.undo_manager.getIndex());
+        thisGraph.undo_manager.redo();
+        thisGraph.updateGraph();
+      }
+      break;
     }
   };
 
@@ -700,22 +708,77 @@
   GraphCreator.prototype.addNode = function (d) {
     var thisGraph = this;
     thisGraph.nodes.push(d);
+
+    thisGraph.undo_manager.add({
+            undo: function () {
+                thisGraph.deleteNodeAndItsEdges(d);
+            },
+            redo: function () {
+                thisGraph.addNode(d);
+            }
+        });
   };
 
   GraphCreator.prototype.deleteNodeAndItsEdges = function (d) {
     var thisGraph = this;
-    thisGraph.nodes.splice(thisGraph.nodes.indexOf(d), 1);
-    thisGraph.spliceLinksForNode(d);
+    var nodeAt = thisGraph.nodes.indexOf(d);
+    thisGraph.nodes.splice(nodeAt, 1);
+    
+    // remove edges associated with a node
+    var edgesAt = [];
+    var edgesToSplice = thisGraph.edges.filter(function(l) {
+      return (l.source === d || l.target === d);
+    });
+    edgesToSplice.map(function(l) {
+      var edgeAt = thisGraph.edges.indexOf(l);
+      edgesAt.push(edgesAt);
+      thisGraph.edges.splice(edgeAt, 1);
+    });
+
+    thisGraph.undo_manager.add({
+            undo: function () {
+                // reinsert the node at the same position
+                thisGraph.nodes.splice(nodeAt, 0, d);
+
+                // and its edges too
+                edgesToSplice.map(function(l, idx) {
+                    var edgeAt = edgesAt[idx];
+                    thisGraph.edges.splice(edgeAt, 0, l);
+                });
+            },
+            redo: function () {
+                thisGraph.deleteNodeAndItsEdges(d);
+            }
+        });
   };
   
   GraphCreator.prototype.addEdge = function(e) {
     var thisGraph = this;
     thisGraph.edges.push(e);
+
+    thisGraph.undo_manager.add({
+            undo: function () {
+                thisGraph.deleteEdge(e);
+            },
+            redo: function () {
+                thisGraph.addEdge(e);
+            }
+        });
   };
 
   GraphCreator.prototype.deleteEdge = function (e) {
     var thisGraph = this;
-    thisGraph.edges.splice(thisGraph.edges.indexOf(e), 1);
+    var edgeAt = thisGraph.edges.indexOf(e);
+    thisGraph.edges.splice(edgeAt, 1);
+    
+    thisGraph.undo_manager.add({
+            undo: function () {
+                thisGraph.edges.splice(edgeAt, 0, e);
+            },
+            redo: function () {
+                thisGraph.deleteEdge(e);
+            }
+        });
   };
 
 
@@ -742,4 +805,4 @@
   window.GraphCreator = GraphCreator;
   window.create_svg_helper = create_svg_helper;   
 
-})(window.d3, window.saveAs, window.Blob);
+})(window.d3, window.saveAs, window.Blob, window.UndoManager);
