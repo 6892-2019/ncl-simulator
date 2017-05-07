@@ -32,11 +32,11 @@ body{
     z-index: 5;
 }
 
-#toolbox input{
+#toolbox i{
     width: 30px;
     opacity: 0.4;
 }
-#toolbox input:hover{
+#toolbox i:hover{
     opacity: 1;
     cursor: pointer;
 }

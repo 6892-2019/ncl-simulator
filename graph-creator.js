@@ -100,6 +100,7 @@
 
     // listen for dragging
     var dragSvg = d3.behavior.zoom()
+          .scaleExtent([thisGraph.consts.zoomMinScale, thisGraph.consts.zoomMaxScale])
           .on("zoom", function(){
             if (d3.event.sourceEvent.shiftKey){
               // TODO  the internal d3 state is still changing
@@ -120,6 +121,7 @@
             d3.select('body').style("cursor", "auto");
           });
 
+    thisGraph.dragSvg = dragSvg;
     svg.call(dragSvg).on("dblclick.zoom", null);
 
     // listen for resize
@@ -177,6 +179,11 @@
     d3.select("#delete-graph").on("click", function(){
       thisGraph.deleteGraph(false);
     });
+    
+    // center the graph
+    d3.select("#center-graph").on("click", function(){
+      thisGraph.centerGraph();
+    });
   };
 
   GraphCreator.prototype.setIdCt = function(idct){
@@ -201,10 +208,40 @@
     charWidthPixel: 10,
     lineHeightPixel: 15,
     lowerTextRatio: 1.60,
-    upperTextRatio: 4.0
+    upperTextRatio: 4.0,
+    zoomMinScale: 0.25,
+    zoomMaxScale: 1.5
   };
 
   /* PROTOTYPE FUNCTIONS */
+
+  GraphCreator.prototype.centerGraph = function () {
+    var thisGraph = this;
+
+    // find the mass center of the graph
+    var x = 0, y = 0;
+    thisGraph.nodes.forEach(function (d) {
+      x += d.x;
+      y += d.y;
+    });
+    
+    var nnodes = thisGraph.nodes.length || 1;
+    x = x / nnodes;
+    y = y / nnodes;
+    
+    // find the difference between the mass center and the center of the canvas
+    var w = thisGraph.svg.attr("width");
+    var h = thisGraph.svg.attr("height");
+
+    var dx = (w/2) - x;
+    var dy = (h/2) - y;
+
+    thisGraph.dragSvg.translate([dx,dy]);
+    thisGraph.dragSvg.scale(1);
+
+    thisGraph.zoomed.call(thisGraph);
+    thisGraph.updateGraph();
+  };
 
   GraphCreator.prototype.dragmove = function(d) {
     var thisGraph = this;
@@ -694,7 +731,7 @@
   GraphCreator.prototype.zoomed = function(){
     this.state.justScaleTransGraph = true;
     d3.select("." + this.consts.graphClass)
-      .attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")");
+      .attr("transform", "translate(" + this.dragSvg.translate() + ") scale(" + this.dragSvg.scale() + ")");
   };
 
   GraphCreator.prototype.updateWindow = function(svg){
