@@ -151,17 +151,7 @@
           var txtRes = filereader.result;
           // TODO better error handling
           try{
-            var jsonObj = JSON.parse(txtRes);
-            thisGraph.deleteGraph(true);
-            thisGraph.nodes = jsonObj.nodes;
-            thisGraph.setIdCt(jsonObj.nodes.length + 1);
-            var newEdges = jsonObj.edges;
-            newEdges.forEach(function(e, i){
-              newEdges[i] = {source: thisGraph.nodes.filter(function(n){return n.id == e.source;})[0],
-                          target: thisGraph.nodes.filter(function(n){return n.id == e.target;})[0]};
-            });
-            thisGraph.edges = newEdges;
-            thisGraph.updateGraph();
+            thisGraph.load_graph_from_json(txtRes);
           }catch(err){
             window.alert("Error parsing uploaded file\nerror message: " + err.message);
             return;
@@ -214,6 +204,24 @@
   };
 
   /* PROTOTYPE FUNCTIONS */
+
+  GraphCreator.prototype.load_graph_from_json = function (json_txt) {
+    var thisGraph = this;
+    var jsonObj = JSON.parse(json_txt);
+
+    thisGraph.deleteGraph(true);
+    thisGraph.nodes = jsonObj.nodes;
+    thisGraph.setIdCt(jsonObj.nodes.length + 1);
+    var newEdges = jsonObj.edges;
+    newEdges.forEach(function(e, i){
+      newEdges[i] = {source: thisGraph.nodes.filter(function(n){return n.id == e.source;})[0],
+                  target: thisGraph.nodes.filter(function(n){return n.id == e.target;})[0]};
+    });
+    thisGraph.edges = newEdges;
+    thisGraph.updateGraph();
+    
+    thisGraph.undo_manager.clear();
+  };
 
   GraphCreator.prototype.centerGraph = function () {
     var thisGraph = this;
@@ -368,6 +376,7 @@
       var tspan = el.append('tspan').text(lines[i]);
       if (i > 0)
         tspan.attr('x', 0).attr('dy', lineHeightPixel);
+
     }
   };
 
@@ -838,8 +847,15 @@
       return svg;
   };
 
+  var load_help_graph = function (thisGraph) {
+      var data = '{"nodes":[{"id":2,"title":"...over the canvas to create a node","x":-34.8425874710083,"y":345.1973114013672},{"id":4,"title":"...over a node to edit it","x":104.56795167922974,"y":335.9345703125},{"id":5,"title":"Press left-click in the canvas and drag to move it","x":665.2431640625,"y":132.82406616210938},{"id":6,"title":"Use the mouse\'s wheel to zoom in and out","x":670.2128295898438,"y":247.45790100097656},{"id":7,"title":"Draw a graph.","x":-34.29644012451172,"y":104.17717742919922},{"id":10,"title":"...over a node and drag to another node to draw an arrow","x":-197.8009796142578,"y":344.45040130615234},{"id":12,"title":"Press the Delete key to delete the selected node or arrow.","x":232.065185546875,"y":348.3305358886719},{"id":13,"title":"Press Center button in the toolbar to center the graph ","x":670.1931762695312,"y":368.9619140625},{"id":14,"title":"Select a node or an arrow with a left-click","x":231.241943359375,"y":216.8880615234375},{"id":15,"title":"Press shift+left-click over...","x":-33.90104007720947,"y":219.1341094970703},{"id":17,"title":" Left-click and drag to move a node","x":-336.3450927734375,"y":220.22991943359375},{"id":18,"title":"Press ctrl-z to undo the last action","x":-36.092668533325195,"y":481.1949157714844},{"id":19,"title":"Press ctrl-y to redo the last undid action","x":-38.188438415527344,"y":579.9137573242188}],"edges":[{"source":5,"target":6},{"source":6,"target":13},{"source":7,"target":14},{"source":14,"target":12},{"source":7,"target":15},{"source":15,"target":2},{"source":15,"target":4},{"source":7,"target":17},{"source":17,"target":10},{"source":15,"target":10},{"source":10,"target":18},{"source":2,"target":18},{"source":4,"target":18},{"source":12,"target":18},{"source":18,"target":19}]}';
+      thisGraph.load_graph_from_json(data);
+      thisGraph.centerGraph();
+  };
+
   // export
   window.GraphCreator = GraphCreator;
-  window.create_svg_helper = create_svg_helper;   
+  window.create_svg_helper = create_svg_helper;
+  window.load_help_graph = load_help_graph;
 
 })(window.d3, window.saveAs, window.Blob, window.UndoManager);
