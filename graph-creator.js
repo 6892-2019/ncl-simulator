@@ -211,12 +211,21 @@
 
     thisGraph.deleteGraph(true);
     thisGraph.nodes = jsonObj.nodes;
-    thisGraph.setIdCt(jsonObj.nodes.length + 1);
+
+    var maxIdCt = 0;
+    for (var i = 0; i < thisGraph.nodes.length; ++i) {
+        if (maxIdCt < thisGraph.nodes[i].id)
+            maxIdCt = thisGraph.nodes[i].id;
+    }
+
+    thisGraph.setIdCt(maxIdCt + 1);
+
     var newEdges = jsonObj.edges;
     newEdges.forEach(function(e, i){
       newEdges[i] = {source: thisGraph.nodes.filter(function(n){return n.id == e.source;})[0],
                   target: thisGraph.nodes.filter(function(n){return n.id == e.target;})[0]};
     });
+
     thisGraph.edges = newEdges;
     thisGraph.updateGraph();
     
