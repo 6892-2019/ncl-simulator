@@ -482,7 +482,7 @@
   };
 
   /* place editable text on node in place of svg text */
-  GraphCreator.prototype.changeTextOfNode = function(d3node, d){
+  GraphCreator.prototype.changeTextOfNode = function(d3node, d, is_a_new_node){
     var thisGraph= this,
         consts = thisGraph.consts,
         htmlEl = d3node.node();
@@ -523,15 +523,35 @@
             }
           })
           .on("blur", function(d){
-            d.title = this.textContent;
-            thisGraph.insertTitleLinebreaks(d3node, d.title);
+            thisGraph.updateNodesTitle(d3node, d, this.textContent, is_a_new_node);
+            
             d3.select(this.parentElement).remove();
-
-            thisGraph.update_rectangle_size_based_on_text_size(d3node[0][0]);
             gnodes.attr("opacity", gnodes_original_opacity);
             gedges.attr("opacity", gedges_original_opacity);
           });
     return d3txt;
+  };
+  
+  GraphCreator.prototype.updateNodesTitle = function(d3node, d, new_title, is_a_new_node) {
+    var thisGraph = this;
+    var old_title = d.title;
+
+    d3node.selectAll("text").remove();
+
+    d.title = new_title;
+    thisGraph.insertTitleLinebreaks(d3node, d.title);
+    thisGraph.update_rectangle_size_based_on_text_size(d3node[0][0]);
+    
+    if (!is_a_new_node) {
+      thisGraph.undo_manager.add({
+              undo: function () {
+                  thisGraph.updateNodesTitle(d3node, d, old_title);
+              },
+              redo: function () {
+                  thisGraph.updateNodesTitle(d3node, d, new_title);
+              }
+          });
+    }
   };
 
   // mouseup on nodes
@@ -616,7 +636,7 @@
       // make title of text immediently editable
       var d3txt = thisGraph.changeTextOfNode(thisGraph.gnodes.filter(function(dval){
         return dval.id === d.id;
-      }), d),
+      }), d, true),
           txtNode = d3txt.node();
       thisGraph.selectElementContents(txtNode);
       txtNode.focus();
