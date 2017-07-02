@@ -204,7 +204,15 @@
     upperTextRatio: 4.0,
     zoomMinScale: 0.25,
     zoomMaxScale: 1.5,
-    COLORS: ["#333", "#f00"],
+    COLORS: [
+      "#333",
+      "rgb(76, 114, 176)",
+      "rgb(85, 168, 104)",
+      "rgb(196, 78, 82)",
+      "rgb(129, 114, 178)",
+      "rgb(204, 185, 116)",
+      "rgb(100, 181, 205)",
+      ],
     STROKES: ["none", "5, 5", "10, 5, 5, 5, 5, 5"]
   };
 
@@ -769,8 +777,8 @@
     });
 
     thisGraph.gnodes.selectAll('rect')
-      .style("stroke", function (d) {return consts.COLORS[d.color] || "#333"; }) 
-      .attr("stroke-dasharray", function (d) {console.log(d); return consts.STROKES[d.stroke] || "none"; });
+      .style("stroke", function (d) {console.log(consts.COLORS[d.color]); return consts.COLORS[d.color] || "#333"; }) 
+      .attr("stroke-dasharray", function (d) {return consts.STROKES[d.stroke] || "none"; });
   };
 
   // Given a "g" (group) dom element --a node--, change the size of its rect element to fit the size of its text.
