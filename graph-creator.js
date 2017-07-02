@@ -187,7 +187,7 @@
     nodeGClass: "conceptG",
     graphClass: "graph",
     activeEditId: "active-editing",
-    editingOpacity: 0.4,
+    editingOpacity: 0.1,
     BACKSPACE_KEY: 8,
     DELETE_KEY: 46,
     ENTER_KEY: 13,
@@ -487,9 +487,13 @@
         consts = thisGraph.consts,
         htmlEl = d3node.node();
 
-    var gnode = d3node.selectAll("rect");
-    var original_opacity = gnode.attr("opacity");
-    gnode.attr("opacity", thisGraph.consts.editingOpacity);
+    var gnodes = thisGraph.gnodes;
+    var gnodes_original_opacity = gnodes.attr("opacity");
+    gnodes.attr("opacity", thisGraph.consts.editingOpacity);
+    
+    var gedges = thisGraph.gedges;
+    var gedges_original_opacity = gedges.attr("opacity");
+    gedges.attr("opacity", thisGraph.consts.editingOpacity);
 
     d3node.selectAll("text").remove();
     var nodeBCR = htmlEl.getBoundingClientRect(),
@@ -524,7 +528,8 @@
             d3.select(this.parentElement).remove();
 
             thisGraph.update_rectangle_size_based_on_text_size(d3node[0][0]);
-            gnode.attr("opacity", original_opacity);
+            gnodes.attr("opacity", gnodes_original_opacity);
+            gedges.attr("opacity", gedges_original_opacity);
           });
     return d3txt;
   };
