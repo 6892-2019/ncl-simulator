@@ -9,19 +9,19 @@ Github repository: https://github.com/eldipa/Mindcraft
 
 ### Run locally
 
-Download it and open the `mindcraft.html` with an browser. After downloading the code you won't need internet access.
+Download it and open the `mindcraft.html` file with an browser. After downloading the code you won't need internet access.
 
 ### License
 
-The source code is under the MIT license. See the `LICENSE.md` file.
+The source code is under the MIT license. See the `LICENSE.md` file. https://opensource.org/licenses/mit-license.html
 
 The source code is a fork of another project under the same license. 
 Fork: https://github.com/cjrd/directed-graph-creator
 
-The current git repository includes files that aren't covered by this license and belongs to other projects.
+The current git repository also includes files that aren't covered by this license and belong to other projects.
 You can find them under the `external/` folder.
 
-To their authors and contributors, thanks.
+To the authors and contributors of those projects, thanks.
 
 Until my knowledge, these are their respective licenses:
 
