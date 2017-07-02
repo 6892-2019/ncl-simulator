@@ -193,6 +193,9 @@
     ENTER_KEY: 13,
     UNDO_KEY: 90, // Z
     REDO_KEY: 89, // Y
+    COLOR_KEY: 67,     // C
+    STROKE_KEY: 83,    // S
+    DIRECTION_KEY: 68, // D
     nodeRadius: 50,
     nodeMargin: 7,
     charWidthPixel: 10,
@@ -200,7 +203,9 @@
     lowerTextRatio: 1.60,
     upperTextRatio: 4.0,
     zoomMinScale: 0.25,
-    zoomMaxScale: 1.5
+    zoomMaxScale: 1.5,
+    COLORS: ["#333", "#f00"],
+    STROKES: ["none", "5, 5", "10, 5, 5, 5, 5, 5"]
   };
 
   /* PROTOTYPE FUNCTIONS */
@@ -522,7 +527,7 @@
 
     if (mouseDownNode !== d){
       // we're in a different node: create new edge for mousedown edge and add to graph
-      var newEdge = {source: mouseDownNode, target: d};
+      var newEdge = {source: mouseDownNode, target: d, color: 0, stroke: 0};
       var filtRes = thisGraph.gedges.filter(function(d){
         if (d.source === newEdge.target && d.target === newEdge.source){
           thisGraph.edges.splice(thisGraph.edges.indexOf(d), 1);
@@ -581,7 +586,7 @@
     } else if (state.graphMouseDown && d3.event.shiftKey){
       // clicked not dragged from svg
       var xycoords = d3.mouse(thisGraph.svgG.node()),
-          d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1]};
+          d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1], color: 0, stroke: 0};
       thisGraph.addNode(d);
       thisGraph.updateGraph();
       // make title of text immediently editable
@@ -605,7 +610,7 @@
         state = thisGraph.state,
         consts = thisGraph.consts;
     // make sure repeated key presses don't register for each keydown
-    if(state.lastKeyDown !== -1) return;
+    //if(state.lastKeyDown !== -1) return;
 
     state.lastKeyDown = d3.event.keyCode;
     var selectedNode = state.selectedNode,
@@ -622,6 +627,32 @@
       } else if (selectedEdge){
         thisGraph.deleteEdge(selectedEdge);
         state.selectedEdge = null;
+        thisGraph.updateGraph();
+      }
+      break;
+    case consts.COLOR_KEY:
+      d3.event.preventDefault();
+      if (selectedNode){
+        selectedNode.color = ((selectedNode.color || 0) + 1) % consts.COLORS.length;
+        thisGraph.updateGraph();
+      } else if (selectedEdge){
+        selectedEdge.color = ((selectedEdge.color || 0) + 1) % consts.COLORS.length;
+        thisGraph.updateGraph();
+      }
+      break;
+    case consts.STROKE_KEY:
+      d3.event.preventDefault();
+      if (selectedNode){
+        selectedNode.stroke = ((selectedNode.stroke || 0) + 1) % consts.STROKES.length;
+        thisGraph.updateGraph();
+      } else if (selectedEdge){
+        selectedEdge.stroke = ((selectedEdge.stroke || 0) + 1) % consts.STROKES.length;
+        thisGraph.updateGraph();
+      }
+      break;
+    case consts.DIRECTION_KEY:
+      d3.event.preventDefault();
+      if (selectedEdge){
         thisGraph.updateGraph();
       }
       break;
@@ -691,6 +722,10 @@
     // remove old links
     gedges.exit().remove();
 
+    gedges
+      .style('stroke', function (d) {return consts.COLORS[d.color] || "#333"; })
+      .attr("stroke-dasharray", function (d) {return consts.STROKES[d.stroke] || "none";})
+
     // update existing nodes
     thisGraph.gnodes = thisGraph.gnodes.data(thisGraph.nodes, function(d){ return d.id;});
     thisGraph.gnodes.attr("transform", function(d){return "translate(" + d.x + "," + d.y + ")";});
@@ -732,6 +767,10 @@
     thisGraph.gnodes.each(function () {
         thisGraph.update_rectangle_size_based_on_text_size(this);
     });
+
+    thisGraph.gnodes.selectAll('rect')
+      .style("stroke", function (d) {return consts.COLORS[d.color] || "#333"; }) 
+      .attr("stroke-dasharray", function (d) {console.log(d); return consts.STROKES[d.stroke] || "none"; });
   };
 
   // Given a "g" (group) dom element --a node--, change the size of its rect element to fit the size of its text.
