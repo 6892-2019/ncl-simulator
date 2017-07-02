@@ -1,6 +1,0 @@
-[submodule "external/undomanager"]
-	path = external/undomanager
-	url = https://github.com/ArthurClemens/Javascript-Undo-Manager.git
-[submodule "external/filesaver"]
-	path = external/filesaver
-	url = https://github.com/eligrey/FileSaver.js.git
