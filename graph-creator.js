@@ -546,7 +546,7 @@
 
     if (mouseDownNode !== d){
       // we're in a different node: create new edge for mousedown edge and add to graph
-      var newEdge = {source: mouseDownNode, target: d, color: 0, stroke: 0, dir: 0};
+      var newEdge = {source: mouseDownNode, target: d, color: 0, stroke: 0, dir: 1};
       var filtRes = thisGraph.gedges.filter(function(d){
         if (d.source === newEdge.target && d.target === newEdge.source){
           thisGraph.edges.splice(thisGraph.edges.indexOf(d), 1);
@@ -650,28 +650,31 @@
       }
       break;
     case consts.COLOR_KEY:
+      var next = (d3.event.shiftKey) ? -1 : +1;
       d3.event.preventDefault();
       if (selectedNode){
-        selectedNode.color = (selectedNode.color + 1) % consts.COLORS.length;
+        selectedNode.color = (selectedNode.color + next) % consts.COLORS.length;
         thisGraph.updateGraph();
       } else if (selectedEdge){
-        selectedEdge.color = (selectedEdge.color + 1) % consts.COLORS.length;
+        selectedEdge.color = (selectedEdge.color + next) % consts.COLORS.length;
         thisGraph.updateGraph();
       }
       break;
     case consts.STROKE_KEY:
+      var next = (d3.event.shiftKey) ? -1 : +1;
       d3.event.preventDefault();
       if (selectedNode){
-        selectedNode.stroke = (selectedNode.stroke + 1) % consts.STROKES.length;
+        selectedNode.stroke = (selectedNode.stroke + next) % consts.STROKES.length;
         thisGraph.updateGraph();
       } else if (selectedEdge){
-        selectedEdge.stroke = (selectedEdge.stroke + 1) % consts.STROKES.length;
+        selectedEdge.stroke = (selectedEdge.stroke + next) % consts.STROKES.length;
         thisGraph.updateGraph();
       }
       break;
     case consts.DIRECTION_KEY:
       d3.event.preventDefault();
       if (selectedEdge){
+        selectedEdge.dir = !selectedEdge.dir;
         thisGraph.updateGraph();
       }
       break;
@@ -708,7 +711,8 @@
     });
     var gedges = thisGraph.gedges;
     // update existing gedges
-    gedges.style('marker-mid', 'url(#end-arrow)')
+    gedges
+      .style('marker-mid', function (d) { return d.dir? 'url(#end-arrow)' : 'none';})
       .classed(consts.selectedClass, function(d){
         return d === state.selectedEdge;
       })
@@ -721,7 +725,7 @@
     // add new gedges
     gedges.enter()
       .append("path")
-      .style('marker-mid','url(#end-arrow)')
+      .style('marker-mid', function (d) { return d.dir? 'url(#end-arrow)' : 'none';})
       .classed("link", true)
       .attr("d", function(d){
         var middle_x = (d.target.x - d.source.x) / 2 + d.source.x;
@@ -913,8 +917,7 @@
   };
 
   var load_help_graph = function (thisGraph) {
-      //var data = '{"nodes":[{"id":2,"title":"...over the canvas to create a node","x":-34.8425874710083,"y":345.1973114013672},{"id":4,"title":"...over a node to edit it","x":104.56795167922974,"y":335.9345703125},{"id":5,"title":"Press left-click in the canvas and drag to move it","x":665.2431640625,"y":132.82406616210938},{"id":6,"title":"Use the mouse\'s wheel to zoom in and out","x":670.2128295898438,"y":247.45790100097656},{"id":7,"title":"Draw a graph.","x":-34.29644012451172,"y":104.17717742919922},{"id":10,"title":"...over a node and drag to another node to draw an arrow","x":-197.8009796142578,"y":344.45040130615234},{"id":12,"title":"Press the Delete key to delete the selected node or arrow.","x":232.065185546875,"y":348.3305358886719},{"id":13,"title":"Press Center button in the toolbar to center the graph ","x":670.1931762695312,"y":368.9619140625},{"id":14,"title":"Select a node or an arrow with a left-click","x":231.241943359375,"y":216.8880615234375},{"id":15,"title":"Press shift+left-click over...","x":-33.90104007720947,"y":219.1341094970703},{"id":17,"title":" Left-click and drag to move a node","x":-336.3450927734375,"y":220.22991943359375},{"id":18,"title":"Press ctrl-z to undo the last action","x":-36.092668533325195,"y":481.1949157714844},{"id":19,"title":"Press ctrl-y to redo the last undid action","x":-38.188438415527344,"y":579.9137573242188}],"edges":[{"source":5,"target":6},{"source":6,"target":13},{"source":7,"target":14},{"source":14,"target":12},{"source":7,"target":15},{"source":15,"target":2},{"source":15,"target":4},{"source":7,"target":17},{"source":17,"target":10},{"source":15,"target":10},{"source":10,"target":18},{"source":2,"target":18},{"source":4,"target":18},{"source":12,"target":18},{"source":18,"target":19}]}';
-      var data = '{"nodes":[{"id":2,"title":"...over the canvas to create a node","x":-34.8425874710083,"y":345.1973114013672,"color":0,"stroke":0},{"id":4,"title":"...over a node to edit it","x":104.56795167922974,"y":335.9345703125,"color":0,"stroke":0},{"id":5,"title":"Press left-click in the canvas and drag to move it","x":665.2431640625,"y":132.82406616210938,"color":0,"stroke":0},{"id":6,"title":"Use the mouse\'s wheel to zoom in and out","x":670.2128295898438,"y":247.45790100097656,"color":0,"stroke":0},{"id":7,"title":"Draw a graph.","x":-34.29644012451172,"y":104.17717742919922,"color":0,"stroke":0},{"id":10,"title":"...over a node and drag to another node to draw an arrow","x":-197.8009796142578,"y":344.45040130615234,"color":0,"stroke":0},{"id":12,"title":"Press the Delete key to delete the selected node or arrow.","x":232.065185546875,"y":348.3305358886719,"color":0,"stroke":0},{"id":13,"title":"Press Center button in the toolbar to center the graph ","x":670.1931762695312,"y":368.9619140625,"color":0,"stroke":0},{"id":14,"title":"Select a node or an arrow with a left-click","x":231.241943359375,"y":216.8880615234375,"color":0,"stroke":0},{"id":15,"title":"Press shift+left-click over...","x":-33.90104007720947,"y":219.1341094970703,"color":0,"stroke":0},{"id":17,"title":" Left-click and drag to move a node","x":-336.3450927734375,"y":220.22991943359375,"color":0,"stroke":0},{"id":18,"title":"Press ctrl-z to undo the last action","x":-36.092668533325195,"y":481.1949157714844,"color":0,"stroke":0},{"id":19,"title":"Press ctrl-y to redo the last undid action","x":-38.188438415527344,"y":579.9137573242188,"color":0,"stroke":0}],"edges":[{"source":5,"target":6,"color":0,"stroke":0,"dir":0},{"source":6,"target":13,"color":0,"stroke":0,"dir":0},{"source":7,"target":14,"color":0,"stroke":0,"dir":0},{"source":14,"target":12,"color":0,"stroke":0,"dir":0},{"source":7,"target":15,"color":0,"stroke":0,"dir":0},{"source":15,"target":2,"color":0,"stroke":0,"dir":0},{"source":15,"target":4,"color":0,"stroke":0,"dir":0},{"source":7,"target":17,"color":0,"stroke":0,"dir":0},{"source":17,"target":10,"color":0,"stroke":0,"dir":0},{"source":15,"target":10,"color":0,"stroke":0,"dir":0},{"source":10,"target":18,"color":0,"stroke":0,"dir":0},{"source":2,"target":18,"color":0,"stroke":0,"dir":0},{"source":4,"target":18,"color":0,"stroke":0,"dir":0},{"source":12,"target":18,"color":0,"stroke":0,"dir":0},{"source":18,"target":19,"color":0,"stroke":0,"dir":0}]}';
+      var data = '{"nodes":[{"id":2,"title":"...over the canvas to create a node","x":-34.8425874710083,"y":345.1973114013672,"color":0,"stroke":0},{"id":4,"title":"...over a node to edit it","x":104.56795167922974,"y":335.9345703125,"color":0,"stroke":0},{"id":5,"title":"Press left-click in the canvas and drag to move it","x":671.2431640625,"y":131.82406616210938,"color":0,"stroke":0},{"id":6,"title":"Use the mouse\'s wheel to zoom in and out","x":670.2128295898438,"y":247.45790100097656,"color":0,"stroke":0},{"id":7,"title":"Draw a graph","x":-34.29644012451172,"y":104.17717742919922,"color":0,"stroke":0},{"id":10,"title":"...over a node and drag to another node to draw an arrow","x":-197.8009796142578,"y":344.45040130615234,"color":0,"stroke":0},{"id":12,"title":"Press Delete to delete it","x":220.065185546875,"y":338.3305358886719,"color":0,"stroke":0},{"id":13,"title":"Press Center button in the toolbar to center the graph ","x":670.1931762695312,"y":368.9619140625,"color":0,"stroke":0},{"id":14,"title":"Select a node or an arrow with a left-click","x":375.241943359375,"y":196.8880615234375,"color":0,"stroke":0},{"id":15,"title":"Press shift+left-click over...","x":-33.90104007720947,"y":219.1341094970703,"color":0,"stroke":0},{"id":17,"title":" Left-click and drag to move a node","x":-198.3450927734375,"y":221.22991943359375,"color":0,"stroke":0},{"id":18,"title":"Press ctrl-z to undo the last action","x":-36.092668533325195,"y":481.1949157714844,"color":0,"stroke":0},{"id":19,"title":"Press ctrl-y to redo the last undid action","x":-38.188438415527344,"y":579.9137573242188,"color":0,"stroke":0},{"id":20,"title":"Press C to change its color","x":313.23516845703125,"y":340.43804931640625,"color":0,"stroke":0},{"id":21,"title":"Press S to change the stroke pattern","x":410.23516845703125,"y":346.43804931640625,"color":0,"stroke":0},{"id":22,"title":"Press D to change the direction (arrows only)","x":526.2351684570312,"y":347.43804931640625,"color":0,"stroke":0},{"id":23,"title":"Change color, stroke and direction cyclically","x":412.73516845703125,"y":499.12554931640625,"color":0,"stroke":4},{"id":24,"title":"Pressing shift will go backward","x":245.73516845703125,"y":498.12554931640625,"color":0,"stroke":0}],"edges":[{"source":5,"target":6,"color":0,"stroke":0,"dir":0},{"source":6,"target":13,"color":0,"stroke":0,"dir":0},{"source":7,"target":14,"color":0,"stroke":0,"dir":0},{"source":14,"target":12,"color":0,"stroke":0,"dir":0},{"source":7,"target":15,"color":0,"stroke":0,"dir":0},{"source":15,"target":2,"color":0,"stroke":0,"dir":0},{"source":15,"target":4,"color":0,"stroke":0,"dir":0},{"source":7,"target":17,"color":0,"stroke":0,"dir":0},{"source":17,"target":10,"color":0,"stroke":0,"dir":0},{"source":15,"target":10,"color":0,"stroke":0,"dir":0},{"source":10,"target":18,"color":0,"stroke":0,"dir":0},{"source":2,"target":18,"color":0,"stroke":0,"dir":0},{"source":4,"target":18,"color":0,"stroke":0,"dir":0},{"source":12,"target":18,"color":0,"stroke":0,"dir":0},{"source":18,"target":19,"color":0,"stroke":0,"dir":0},{"source":14,"target":20,"color":0,"stroke":0,"dir":0},{"source":14,"target":21,"color":0,"stroke":0,"dir":0},{"source":14,"target":22,"color":0,"stroke":0,"dir":0},{"source":23,"target":20,"color":0,"stroke":4,"dir":0},{"source":23,"target":21,"color":0,"stroke":4,"dir":0},{"source":23,"target":22,"color":0,"stroke":4,"dir":0},{"source":23,"target":24,"color":0,"stroke":0,"dir":0}]}';
       thisGraph.load_graph_from_json(data);
       thisGraph.centerGraph();
   };
