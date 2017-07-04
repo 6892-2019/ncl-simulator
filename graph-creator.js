@@ -487,13 +487,9 @@
         consts = thisGraph.consts,
         htmlEl = d3node.node();
 
-    var gnodes = thisGraph.gnodes;
-    var gnodes_original_opacity = gnodes.attr("opacity");
-    gnodes.attr("opacity", thisGraph.consts.editingOpacity);
-    
-    var gedges = thisGraph.gedges;
-    var gedges_original_opacity = gedges.attr("opacity");
-    gedges.attr("opacity", thisGraph.consts.editingOpacity);
+    var graph_canvas = thisGraph.svg.selectAll("." + thisGraph.consts.graphClass);
+    var original_opacity = graph_canvas.attr("opacity") || 1;
+    graph_canvas.attr("opacity", thisGraph.consts.editingOpacity);
 
     d3node.selectAll("text").remove();
     var nodeBCR = htmlEl.getBoundingClientRect(),
@@ -526,8 +522,7 @@
             thisGraph.updateNodesTitle(d3node, d, this.textContent, is_a_new_node);
             
             d3.select(this.parentElement).remove();
-            gnodes.attr("opacity", gnodes_original_opacity);
-            gedges.attr("opacity", gedges_original_opacity);
+            graph_canvas.attr("opacity", original_opacity);
           });
     return d3txt;
   };
