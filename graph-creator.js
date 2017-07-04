@@ -199,7 +199,7 @@
     nodeRadius: 50,
     nodeMargin: 7,
     continuationWordMarker: "...",
-    maxWordLength: 64,
+    maxWordLength: 16,
     charWidthPixel: 10,
     lineHeightPixel: 15,
     lowerTextRatio: 1.60,
@@ -516,7 +516,7 @@
           .attr("x", nodeBCR.left + placePad )
           .attr("y", nodeBCR.top + placePad)
           .attr("height", 16*useHW)
-          .attr("width", 8*useHW)
+          .attr("width", 6*useHW)
           .append("xhtml:p")
           .attr("id", consts.activeEditId)
           .attr("contentEditable", "true")
