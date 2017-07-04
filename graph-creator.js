@@ -198,6 +198,8 @@
     DIRECTION_KEY: 68, // D
     nodeRadius: 50,
     nodeMargin: 7,
+    continuationWordMarker: "...",
+    maxWordLength: 64,
     charWidthPixel: 10,
     lineHeightPixel: 15,
     lowerTextRatio: 1.60,
@@ -330,6 +332,16 @@
     var nodeMargin = this.consts.nodeMargin;
 
     var words = title.trim().split(/\s+/g);
+
+    // replace tooo long words by shorter ones
+    var continuation_marker_length = this.consts.continuationWordMarker.length;
+    for (var i = 0; i < words.length; ++i) {
+        if (words[i].length > this.consts.maxWordLength) {
+            words[i] = words[i].substr(0, this.consts.maxWordLength-continuation_marker_length) +
+                            this.consts.continuationWordMarker;
+        }
+    }
+
     var lines = words;
     var ratio = (charWidthPixel * lines.length) / (lineHeightPixel * 1);
     var max_line_length = lines[0].length;
