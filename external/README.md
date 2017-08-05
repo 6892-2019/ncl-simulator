@@ -19,7 +19,7 @@ Until my knowledge, these are their respective licenses:
  - License: MIT License
 
 **Javascript-Undo-Manager**
- - URL: http://purl.eligrey.com/github/FileSaver.js
+ - URL: https://github.com/ArthurClemens/Javascript-Undo-Manager
  - Version: 1.0.5.
  - Date: 02/07/2017
  - License: MIT License
