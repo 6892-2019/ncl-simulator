@@ -1,9 +1,15 @@
-(function(d3, saveAs, Blob, UndoManager){
+(function(d3, saveAs, Blob, UndoManager, alertify){
   "use strict";
 
   // TODO add user settings
   var settings = {
-    appendElSpec: "#graph"
+    appendElSpec: "#graph",
+    alert_settings: {
+      transition: 'fade'
+    },
+    confirm_settings: {
+      transition: 'fade'
+    }
   };
   // define graphcreator object
   var GraphCreator = function(svg, nodes, edges, config){
@@ -164,21 +170,30 @@
           try{
             thisGraph.load_graph_from_json(txtRes);
           }catch(err){
-            window.alert("Error parsing uploaded file\nerror message: " + err.message);
+            alertify.alert('Ups!', "Error parsing uploaded file\nerror message: " + err.message).
+                     setting(settings.alert_settings);
             return;
           }
         };
         filereader.readAsText(uploadFile);
 
       } else {
-        alert("Your browser won't let you save this graph -- try upgrading your browser to IE 10+ or Chrome or Firefox.");
+        alertify.alert('Ups!', "Your browser won't let you save this graph " +
+                               "-- try upgrading your browser to IE 10+ or Chrome or Firefox.").
+                setting(settings.alert_settings);
       }
 
     });
 
     // handle delete graph
     d3.select("#delete-graph").on("click", function(){
-      thisGraph.deleteGraph(false);
+      alertify.confirm("Delete graph", 
+                       "Are you sure that you want to delete this graph?", 
+                        function () {
+                          thisGraph.deleteGraph();
+                        }, 
+                        function noop() {}).
+                setting(settings.confirm_settings);
     });
     
     // center the graph
@@ -243,7 +258,7 @@
     var thisGraph = this;
     var jsonObj = JSON.parse(json_txt);
 
-    thisGraph.deleteGraph(true);
+    thisGraph.deleteGraph();
     thisGraph.nodes = jsonObj.nodes;
 
     var maxIdCt = 0;
@@ -308,17 +323,12 @@
     }
   };
 
-  GraphCreator.prototype.deleteGraph = function(skipPrompt){
-    var thisGraph = this,
-        doDelete = true;
-    if (!skipPrompt){
-      doDelete = window.confirm("Press OK to delete this graph");
-    }
-    if(doDelete){
-      thisGraph.nodes = [];
-      thisGraph.edges = [];
-      thisGraph.updateGraph();
-    }
+  GraphCreator.prototype.deleteGraph = function(){
+    var thisGraph = this;
+
+    thisGraph.nodes = [];
+    thisGraph.edges = [];
+    thisGraph.updateGraph();
   };
 
   /* select all text in element: taken from http://stackoverflow.com/questions/6139107/programatically-select-text-in-a-contenteditable-html-element */
@@ -1051,4 +1061,4 @@
   window.create_svg_helper = create_svg_helper;
   window.load_help_graph = load_help_graph;
 
-})(window.d3, window.saveAs, window.Blob, window.UndoManager);
+})(window.d3, window.saveAs, window.Blob, window.UndoManager, window.alertify);
