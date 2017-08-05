@@ -24,6 +24,12 @@ Until my knowledge, these are their respective licenses:
  - Date: 02/07/2017
  - License: MIT License
 
+**JavaScript Canvas to Blob**
+ - URL: https://github.com/blueimp/JavaScript-Canvas-to-Blob/blob/master/js/canvas-to-blob.js
+ - Version: 3.2.0
+ - Date: 08/04/2017
+ - License: MIT License
+
 **FontAwesome**
  - URL: https://github.com/FortAwesome/Font-Awesome
  - Version: 4.7.0
