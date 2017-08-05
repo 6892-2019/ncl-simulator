@@ -137,6 +137,17 @@
       saveAs(blob, "mydag.json");
     });
 
+    // save the graph as an image
+    d3.select('#download-image').on('click', function(){
+        var svg = thisGraph.svg;
+        var width = svg.attr('width');
+        var height = svg.attr('height');
+
+        save_svg_as_png_image(svg.node(), width, height, function (dataBlob, filesize) {
+            saveAs(dataBlob, 'mydag.png');
+        });
+    });
+
 
     // handle uploaded data
     d3.select("#upload-input").on("click", function(){
@@ -953,6 +964,87 @@
       thisGraph.load_graph_from_json(data);
       thisGraph.centerGraph();
   };
+
+  // Save a SVG as a PNG image
+  // Based on http://bl.ocks.org/Rokotyan/0556f8facbaf344507cdc45dc3622177
+  function save_svg_as_png_image(svg_node, width, height, save_cb) {
+      svg_node.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
+      add_css_rules_into_svg(svg_node);
+
+      var svg_url = svg_string_as_url(serialize_svg_node(svg_node));
+      svg_url_as_image(svg_url, 2*width, 2*height, 'png', save_cb);
+
+      return;
+
+      // helper functions
+      function serialize_svg_node(svgNode) {
+          var serializer = new XMLSerializer();
+          var svgString = serializer.serializeToString(svgNode);
+          svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
+          svgString = svgString.replace(/NS\d+:href/g, 'xlink:href'); // Safari NS namespace fix
+
+          return svgString;
+      }
+
+      function svg_string_as_url(svg_string) {
+          return 'data:image/svg+xml;base64,'+ btoa(unescape(encodeURIComponent(svg_string)));
+      }
+
+      // Get the CSS rules of the web page and insert them into the svg node
+      // If the CSS rules are local (file://) this will not work on Chrome:
+      //    - https://bugs.chromium.org/p/chromium/issues/detail?id=143626
+      //    - https://bugs.chromium.org/p/chromium/issues/detail?id=490
+      //
+      // A workaround is to open Chrome with --allow-file-access-from-files flag
+      function add_css_rules_into_svg(svg_node) {
+          var extractedCSSText = "";
+          for (var i = 0; i < document.styleSheets.length; i++) {
+              var s = document.styleSheets[i];
+
+              try {
+                  if(!s.cssRules) 
+                      continue;
+              } catch( e ) {
+                  if(e.name !== 'SecurityError') throw e; // for Firefox
+                  continue;
+              }
+
+              var cssRules = s.cssRules;
+              for (var r = 0; r < cssRules.length; r++) {
+                  extractedCSSText += cssRules[r].cssText;
+              }
+          }
+
+          var styleElement = document.createElement("style");
+          styleElement.setAttribute("type","text/css"); 
+          styleElement.innerHTML = extractedCSSText;
+
+          var refNode = svg_node.hasChildNodes() ? svg_node.children[0] : null;
+          svg_node.insertBefore( styleElement, refNode );
+      }
+
+      function svg_url_as_image(svg_as_url, width, height, format, callback) {
+          var canvas = document.createElement("canvas");
+          var context = canvas.getContext("2d");
+
+          canvas.width = width;
+          canvas.height = height;
+
+          var image = new Image();
+          image.onload = function() {
+              context.clearRect ( 0, 0, width, height );
+              context.drawImage(image, 0, 0, width, height);
+
+              canvas.toBlob( function(blob) {
+                  var filesize = Math.round( blob.length/1024 ) + ' KB';
+                  if ( callback ) callback( blob, filesize );
+              });
+          };
+
+          image.src = svg_as_url;
+      }
+  }
+
 
   // export
   window.GraphCreator = GraphCreator;
