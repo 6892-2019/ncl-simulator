@@ -11,6 +11,8 @@ Github repository: https://github.com/eldipa/Mindcraft
 
 Download it and open the `mindcraft.html` file with an browser. After downloading the code you won't need internet access.
 
+If you are using Chrome or Chromium, you will need to open the browser with the `-allow-file-access-from-files` flag, otherwise you will not be able to export the graph as a PNG image (this a limitation of Chrome/Chromium)
+
 ### License
 
 The source code is under the MIT license. See the `LICENSE.md` file. https://opensource.org/licenses/mit-license.html
@@ -39,9 +41,15 @@ Until my knowledge, these are their respective licenses:
  - License: MIT License
 
 **Javascript-Undo-Manager**
- - URL: http://purl.eligrey.com/github/FileSaver.js
+ - URL: https://github.com/ArthurClemens/Javascript-Undo-Manager
  - Version: 1.0.5.
  - Date: 02/07/2017
+ - License: MIT License
+
+**JavaScript Canvas to Blob**
+ - URL: https://github.com/blueimp/JavaScript-Canvas-to-Blob/blob/master/js/canvas-to-blob.js
+ - Version: 3.2.0
+ - Date: 08/04/2017
  - License: MIT License
 
 **FontAwesome**
