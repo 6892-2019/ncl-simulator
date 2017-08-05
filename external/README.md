@@ -30,6 +30,12 @@ Until my knowledge, these are their respective licenses:
  - Date: 08/04/2017
  - License: MIT License
 
+**AlertifyJS**
+ - URL: https://github.com/MohammadYounes/AlertifyJS
+ - Version: 1.11.0
+ - Date: 08/05/2017
+ - License: GNU GENERAL PUBLIC LICENSE Version 3
+
 **FontAwesome**
  - URL: https://github.com/FortAwesome/Font-Awesome
  - Version: 4.7.0
