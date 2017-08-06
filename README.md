@@ -11,7 +11,7 @@ Github repository: https://github.com/eldipa/Mindcraft
 
 Download it and open the `mindcraft.html` file with an browser. After downloading the code you won't need internet access.
 
-If you are using Chrome or Chromium, you will need to open the browser with the `-allow-file-access-from-files` flag, otherwise you will not be able to export the graph as a PNG image (this a limitation of Chrome/Chromium)
+If you are using Chrome or Chromium, you will need to open the browser with the `--allow-file-access-from-files` flag, otherwise you will not be able to export the graph as a PNG image (this a limitation of Chrome/Chromium)
 
 ### License
 
