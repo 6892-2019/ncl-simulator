@@ -36,6 +36,12 @@ Until my knowledge, these are their respective licenses:
  - Date: 08/05/2017
  - License: GNU GENERAL PUBLIC LICENSE Version 3
 
+**ColorBrewer**
+ - URL: http://colorbrewer.org/
+ - Version: 1
+ - Date: 08/05/2017
+ - License: Apache-Style Software License 2.0
+
 **FontAwesome**
  - URL: https://github.com/FortAwesome/Font-Awesome
  - Version: 4.7.0
