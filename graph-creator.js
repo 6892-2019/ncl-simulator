@@ -137,7 +137,7 @@
     d3.select("#download-input").on("click", function(){
       var saveEdges = [];
       thisGraph.edges.forEach(function(val, i){
-        saveEdges.push({source: val.source.id, target: val.target.id, color: val.color, stroke: val.stroke, dir: val.dir});
+        saveEdges.push({source: val.source.id, target: val.target.id, color: val.color, stroke: val.stroke, dir: val.dir, fint: val.fint});
       });
       var blob = new Blob([window.JSON.stringify({"nodes": thisGraph.nodes, "edges": saveEdges})], {type: "text/plain;charset=utf-8"});
       saveAs(blob, "mydag.json");
@@ -233,13 +233,14 @@
     zoomMinScale: 0.25,
     zoomMaxScale: 1.5,
     COLORS: [
-      colorbrewer.Greys[5].slice().reverse(),
-      colorbrewer.Blues[5].slice().reverse(),
-      colorbrewer.Greens[5].slice().reverse(),
-      colorbrewer.Reds[5].slice().reverse(),
-      colorbrewer.Purples[5].slice().reverse(),
-      colorbrewer.Oranges[5].slice().reverse(),
+      ["#f6fbff"].concat(colorbrewer.Greys[5]),
+      ["#f6fbff"].concat(colorbrewer.Blues[5]),
+      ["#f6fbff"].concat(colorbrewer.Greens[5]),
+      ["#f6fbff"].concat(colorbrewer.Reds[5]),
+      ["#f6fbff"].concat(colorbrewer.Purples[5]),
+      ["#f6fbff"].concat(colorbrewer.Oranges[5]),
     ],
+    COLOR_INTENSITIES: 6,
     STROKES: [
         "none", // contiguous line
         "5, 2",
@@ -264,6 +265,9 @@
     for (var i = 0; i < thisGraph.nodes.length; ++i) {
         if (maxIdCt < thisGraph.nodes[i].id)
             maxIdCt = thisGraph.nodes[i].id;
+
+        // backward compatibility for missing fields
+        thisGraph.nodes[i].fint = thisGraph.nodes[i].fint || 0;
     }
 
     thisGraph.setIdCt(maxIdCt + 1);
@@ -758,6 +762,8 @@
         consts = thisGraph.consts,
         state = thisGraph.state;
 
+    var MAX_INT_IDX = consts.COLOR_INTENSITIES - 1;
+
     thisGraph.gedges = thisGraph.gedges.data(thisGraph.edges, function(d){
       return String(d.source.id) + "+" + String(d.target.id);
     });
@@ -796,7 +802,7 @@
     gedges.exit().remove();
 
     gedges
-      .style('stroke', function (d) {return consts.COLORS[d.color][0]; })
+      .style('stroke', function (d) {return consts.COLORS[d.color][MAX_INT_IDX]; })
       .attr("stroke-dasharray", function (d) {return consts.STROKES[d.stroke]; })
 
     // update existing nodes
@@ -842,8 +848,9 @@
     });
 
     thisGraph.gnodes.selectAll('rect')
-      .style("stroke", function (d) {return consts.COLORS[d.color][0]; })
-      .attr("stroke-dasharray", function (d) {return consts.STROKES[d.stroke]; });
+      .style("stroke", function (d) {return consts.COLORS[d.color][MAX_INT_IDX]; })
+      .attr("stroke-dasharray", function (d) {return consts.STROKES[d.stroke]; })
+      .style("fill", function (d) {return consts.COLORS[d.color][d.fint];});
   };
 
   // Given a "g" (group) dom element --a node--, change the size of its rect element to fit the size of its text.
