@@ -708,31 +708,40 @@
       break;
     case consts.COLOR_KEY:
       var next = (d3.event.shiftKey) ? -1 : +1;
+      var color = (selectedNode.color + next) % consts.COLORS.length;
+      if (color < 0)
+          color += consts.COLORS.length
       d3.event.preventDefault();
       if (selectedNode){
-        selectedNode.color = (selectedNode.color + next) % consts.COLORS.length;
+        selectedNode.color = color;
         thisGraph.updateGraph();
       } else if (selectedEdge){
-        selectedEdge.color = (selectedEdge.color + next) % consts.COLORS.length;
+        selectedEdge.color = color;
         thisGraph.updateGraph();
       }
       break;
     case consts.FILL_KEY:
       var next = (d3.event.shiftKey) ? -1 : +1;
+      var fint = (selectedNode.fint + next) % consts.COLOR_INTENSITIES;
+      if (fint < 0)
+          fint += consts.COLOR_INTENSITIES
       d3.event.preventDefault();
       if (selectedNode){
-        selectedNode.fint = (selectedNode.fint + next) % consts.COLOR_INTENSITIES;
+        selectedNode.fint = fint;
         thisGraph.updateGraph();
       }
       break;
     case consts.STROKE_KEY:
       var next = (d3.event.shiftKey) ? -1 : +1;
+      var stroke = (selectedNode.stroke + next) % consts.STROKES.length;
+      if (stroke < 0)
+          stroke += consts.STROKES.length
       d3.event.preventDefault();
       if (selectedNode){
-        selectedNode.stroke = (selectedNode.stroke + next) % consts.STROKES.length;
+        selectedNode.stroke = stroke; 
         thisGraph.updateGraph();
       } else if (selectedEdge){
-        selectedEdge.stroke = (selectedEdge.stroke + next) % consts.STROKES.length;
+        selectedEdge.stroke = stroke;
         thisGraph.updateGraph();
       }
       break;
