@@ -233,13 +233,12 @@
     zoomMinScale: 0.25,
     zoomMaxScale: 1.5,
     COLORS: [
-      "#333",
-      "rgb(76, 114, 176)",
-      "rgb(85, 168, 104)",
-      "rgb(196, 78, 82)",
-      "rgb(129, 114, 178)",
-      "rgb(204, 185, 116)",
-      "rgb(100, 181, 205)",
+      colorbrewer.Greys[5].slice().reverse(),
+      colorbrewer.Blues[5].slice().reverse(),
+      colorbrewer.Greens[5].slice().reverse(),
+      colorbrewer.Reds[5].slice().reverse(),
+      colorbrewer.Purples[5].slice().reverse(),
+      colorbrewer.Oranges[5].slice().reverse(),
     ],
     STROKES: [
         "none", // contiguous line
@@ -797,7 +796,7 @@
     gedges.exit().remove();
 
     gedges
-      .style('stroke', function (d) {return consts.COLORS[d.color]; })
+      .style('stroke', function (d) {return consts.COLORS[d.color][0]; })
       .attr("stroke-dasharray", function (d) {return consts.STROKES[d.stroke]; })
 
     // update existing nodes
@@ -843,7 +842,7 @@
     });
 
     thisGraph.gnodes.selectAll('rect')
-      .style("stroke", function (d) {return consts.COLORS[d.color]; }) 
+      .style("stroke", function (d) {return consts.COLORS[d.color][0]; })
       .attr("stroke-dasharray", function (d) {return consts.STROKES[d.stroke]; });
   };
 
