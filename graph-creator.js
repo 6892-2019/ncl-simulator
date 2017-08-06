@@ -9,6 +9,9 @@
     },
     confirm_settings: {
       transition: 'fade'
+    },
+    prompt_settings: {
+      transition: 'fade'
     }
   };
   // define graphcreator object
@@ -95,12 +98,23 @@
           });
 
     // listen for key events
-    d3.select(window).on("keydown", function(){
-      thisGraph.svgKeyDown.call(thisGraph);
-    })
-    .on("keyup", function(){
-      thisGraph.svgKeyUp.call(thisGraph);
-    });
+    thisGraph._toggle_key_events_listen = function (enable) {
+        if (enable) {
+            d3.select(window).on("keydown", function(){
+              thisGraph.svgKeyDown.call(thisGraph);
+            })
+            .on("keyup", function(){
+              thisGraph.svgKeyUp.call(thisGraph);
+            });
+        }
+        else {
+            d3.select(window).on("keydown", null)
+            .on("keyup", null);
+        }
+    };
+    thisGraph._toggle_key_events_listen(true);
+
+    // listen for mouse events
     svg.on("mousedown", function(d){thisGraph.svgMouseDown.call(thisGraph, d);});
     svg.on("mouseup", function(d){thisGraph.svgMouseUp.call(thisGraph, d);});
 
@@ -135,23 +149,51 @@
 
     // handle download data
     d3.select("#download-input").on("click", function(){
-      var saveEdges = [];
-      thisGraph.edges.forEach(function(val, i){
-        saveEdges.push({source: val.source.id, target: val.target.id, color: val.color, stroke: val.stroke, dir: val.dir, fint: val.fint});
-      });
-      var blob = new Blob([window.JSON.stringify({"nodes": thisGraph.nodes, "edges": saveEdges})], {type: "text/plain;charset=utf-8"});
-      saveAs(blob, "mydag.json");
+      thisGraph._toggle_key_events_listen(false);
+      alertify.prompt("Save graph", "How do you want to name the file?", "awesome-ideas.json",
+              function save(e, name) {
+                  thisGraph._toggle_key_events_listen(true);
+                  if (name && name.length > 0) {
+                      var saveEdges = [];
+                      thisGraph.edges.forEach(function(val, i){
+                        saveEdges.push({source: val.source.id, target: val.target.id, color: val.color, stroke: val.stroke, dir: val.dir, fint: val.fint});
+                      });
+                      var blob = new Blob([window.JSON.stringify({"nodes": thisGraph.nodes, "edges": saveEdges})], {type: "text/plain;charset=utf-8"});
+                      saveAs(blob, name);
+                  }
+                  else {
+                      alertify.alert("That is not a valid name. >:@").setting(settings.alert_settings);
+                  }
+              },
+              function noop() {
+                  thisGraph._toggle_key_events_listen(true);
+              }
+              ).setting(settings.prompt_settings);
     });
 
     // save the graph as an image
-    d3.select('#download-image').on('click', function(){
-        var svg = thisGraph.svg;
-        var width = svg.attr('width');
-        var height = svg.attr('height');
+    d3.select('#download-image').on('click', function() {
+      thisGraph._toggle_key_events_listen(false);
+      alertify.prompt("Export graph to PNG image", "How do you want to name the file?", "awesome-ideas.png",
+              function save(e, name) {
+                  thisGraph._toggle_key_events_listen(true);
+                  if (name && name.length > 0) {
+                    var svg = thisGraph.svg;
+                    var width = svg.attr('width');
+                    var height = svg.attr('height');
 
-        save_svg_as_png_image(svg.node(), width, height, function (dataBlob, filesize) {
-            saveAs(dataBlob, 'mydag.png');
-        });
+                    save_svg_as_png_image(svg.node(), width, height, function (dataBlob, filesize) {
+                        saveAs(dataBlob, name);
+                    });
+                  }
+                  else {
+                      alertify.alert("That is not a valid name. >:@").setting(settings.alert_settings);
+                  }
+              },
+              function noop() {
+                  thisGraph._toggle_key_events_listen(true);
+              }
+              ).setting(settings.prompt_settings);
     });
 
 
