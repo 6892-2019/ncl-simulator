@@ -662,7 +662,7 @@
     } else if (state.graphMouseDown && d3.event.shiftKey){
       // clicked not dragged from svg
       var xycoords = d3.mouse(thisGraph.svgG.node()),
-          d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1], color: 0, stroke: 0};
+          d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1], color: 0, stroke: 0, fint: 0};
       thisGraph.addNode(d);
       thisGraph.updateGraph();
       // make title of text immediently editable
@@ -708,9 +708,11 @@
       break;
     case consts.COLOR_KEY:
       var next = (d3.event.shiftKey) ? -1 : +1;
-      var color = (selectedNode.color + next) % consts.COLORS.length;
+      var color = selectedNode? selectedNode.color : selectedEdge.color;
+      color = (color + next) % consts.COLORS.length;
       if (color < 0)
-          color += consts.COLORS.length
+          color += consts.COLORS.length;
+
       d3.event.preventDefault();
       if (selectedNode){
         selectedNode.color = color;
@@ -722,20 +724,23 @@
       break;
     case consts.FILL_KEY:
       var next = (d3.event.shiftKey) ? -1 : +1;
-      var fint = (selectedNode.fint + next) % consts.COLOR_INTENSITIES;
-      if (fint < 0)
-          fint += consts.COLOR_INTENSITIES
       d3.event.preventDefault();
       if (selectedNode){
+        var fint = (selectedNode.fint + next) % consts.COLOR_INTENSITIES;
+        if (fint < 0)
+            fint += consts.COLOR_INTENSITIES;
+
         selectedNode.fint = fint;
         thisGraph.updateGraph();
       }
       break;
     case consts.STROKE_KEY:
       var next = (d3.event.shiftKey) ? -1 : +1;
-      var stroke = (selectedNode.stroke + next) % consts.STROKES.length;
+      var stroke = selectedNode? selectedNode.stroke : selectedEdge.stroke;
+      stroke = (stroke + next) % consts.STROKES.length;
       if (stroke < 0)
-          stroke += consts.STROKES.length
+          stroke += consts.STROKES.length;
+
       d3.event.preventDefault();
       if (selectedNode){
         selectedNode.stroke = stroke; 
