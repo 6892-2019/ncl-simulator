@@ -3,16 +3,7 @@
 
   // TODO add user settings
   var settings = {
-    appendElSpec: "#graph",
-    alert_settings: {
-      transition: 'fade'
-    },
-    confirm_settings: {
-      transition: 'fade'
-    },
-    prompt_settings: {
-      transition: 'fade'
-    }
+    appendElSpec: "#graph"
   };
   // define graphcreator object
   var GraphCreator = function(svg, nodes, edges, config){
@@ -162,13 +153,13 @@
                       saveAs(blob, name);
                   }
                   else {
-                      alertify.alert("That is not a valid name. >:@").setting(settings.alert_settings);
+                      alertify.alert("That is not a valid name. >:@");
                   }
               },
               function noop() {
                   thisGraph._toggle_key_events_listen(true);
               }
-              ).setting(settings.prompt_settings);
+              );
     });
 
     // save the graph as an image
@@ -187,13 +178,13 @@
                     });
                   }
                   else {
-                      alertify.alert("That is not a valid name. >:@").setting(settings.alert_settings);
+                      alertify.alert("That is not a valid name. >:@");
                   }
               },
               function noop() {
                   thisGraph._toggle_key_events_listen(true);
               }
-              ).setting(settings.prompt_settings);
+              );
     });
 
 
@@ -212,8 +203,7 @@
           try{
             thisGraph.load_graph_from_json(txtRes);
           }catch(err){
-            alertify.alert('Ups!', "Error parsing uploaded file\nerror message: " + err.message).
-                     setting(settings.alert_settings);
+            alertify.alert('Ups!', "Error parsing uploaded file\nerror message: " + err.message);
             return;
           }
         };
@@ -221,8 +211,7 @@
 
       } else {
         alertify.alert('Ups!', "Your browser won't let you save this graph " +
-                               "-- try upgrading your browser to IE 10+ or Chrome or Firefox.").
-                setting(settings.alert_settings);
+                               "-- try upgrading your browser to IE 10+ or Chrome or Firefox.");
       }
 
     });
@@ -234,8 +223,7 @@
                         function () {
                           thisGraph.deleteGraph();
                         }, 
-                        function noop() {}).
-                setting(settings.confirm_settings);
+                        function noop() {});
     });
     
     // center the graph

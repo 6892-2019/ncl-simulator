@@ -28,6 +28,9 @@
     <script src="graph-creator.js"></script>
     <script>
         window.onload = function () {
+            alertify.defaults.transition = "fade";
+            alertify.defaults.glossary.title = "::.";
+
             var svg = window.create_svg_helper('#graph');
             
             window.nodes = [];
