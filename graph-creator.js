@@ -220,6 +220,7 @@
     UNDO_KEY: 90, // Z
     REDO_KEY: 89, // Y
     COLOR_KEY: 67,     // C
+    FILL_KEY:  70,     // F
     STROKE_KEY: 83,    // S
     DIRECTION_KEY: 68, // D
     nodeRadius: 50,
@@ -713,6 +714,14 @@
         thisGraph.updateGraph();
       } else if (selectedEdge){
         selectedEdge.color = (selectedEdge.color + next) % consts.COLORS.length;
+        thisGraph.updateGraph();
+      }
+      break;
+    case consts.FILL_KEY:
+      var next = (d3.event.shiftKey) ? -1 : +1;
+      d3.event.preventDefault();
+      if (selectedNode){
+        selectedNode.fint = (selectedNode.fint + next) % consts.COLOR_INTENSITIES;
         thisGraph.updateGraph();
       }
       break;
