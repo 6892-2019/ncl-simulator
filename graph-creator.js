@@ -230,6 +230,55 @@
     d3.select("#center-graph").on("click", function(){
       thisGraph.centerGraph();
     });
+    
+    // copy json to clipboard
+    d3.select("#copy-json").on("click", function(e) {
+      thisGraph._toggle_key_events_listen(false);
+      var saveEdges = [];
+      thisGraph.edges.forEach(function(val, i) {
+        saveEdges.push({
+            source: val.source.id,
+            target: val.target.id,
+            color: val.color,
+            stroke: val.stroke,
+            dir: val.dir,
+            fint: val.fint
+        });
+      });
+      var json = window.JSON.stringify({
+        "nodes": thisGraph.nodes,
+        "edges": saveEdges
+      });
+
+      alertify.prompt("Copy JSON", "Copy JSON to the clipboard?", json,
+        function save(e, name) {
+            thisGraph._toggle_key_events_listen(true);
+            document.execCommand("copy");
+        },
+        function noop() {
+            thisGraph._toggle_key_events_listen(true);
+        }
+      );
+    });
+
+    // load graph from pasted json
+    d3.select("#load-json").on("click", function() {
+      thisGraph._toggle_key_events_listen(false);
+      alertify.prompt("Load JSON", "Paste or type the JSON you want to load:", "",
+        function save(e, json) {
+          thisGraph._toggle_key_events_listen(true);
+          try {
+            thisGraph.load_graph_from_json(json);
+          } catch (err) {
+            alertify.alert('Ups!', "Error parsing JSON\nerror message: " + err.message);
+            return;
+          }
+        },
+        function noop() {
+         thisGraph._toggle_key_events_listen(true);
+        }
+      );
+    });
   };
 
   GraphCreator.prototype.setIdCt = function(idct){
