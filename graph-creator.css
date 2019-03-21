@@ -101,6 +101,7 @@ path.link {
 
 path.link:hover{
     stroke: rgb(94, 196, 204);
+        stroke-width: 8px;
 }
 
 g.connect-node circle{
@@ -117,5 +118,5 @@ path.link.hidden{
 
 path.link.selected {
     stroke: rgb(94, 196, 204);
-    stroke-width: 8px;
+    stroke-width: 9.5px;
 }
