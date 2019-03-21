@@ -1240,7 +1240,7 @@
 
   var markHelperEdge = function(e, mark){
     if (mark){
-      e.stroke = 2;
+      e.stroke = 6;
     }
     else{
       e.stroke = 0;
