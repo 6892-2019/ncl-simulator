@@ -95,7 +95,7 @@ g.selected:hover rect{
 path.link {
     fill: none;
     stroke: #333;
-    stroke-width: 4px;
+    stroke-width: 6px;
     cursor: default;
 }
 
@@ -117,5 +117,5 @@ path.link.hidden{
 
 path.link.selected {
     stroke: rgb(94, 196, 204);
-    stroke-width: 6px;
+    stroke-width: 8px;
 }

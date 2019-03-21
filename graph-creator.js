@@ -36,7 +36,8 @@
       justScaleTransGraph: false,
       lastKeyDown: -1,
       shiftNodeDrag: false,
-      selectedText: null
+      selectedText: null,
+      nclRun: false
     };
 
     // define arrow markers for graph links
@@ -149,7 +150,7 @@
                       thisGraph.edges.forEach(function(val, i){
                         saveEdges.push({source: val.source.id, target: val.target.id, color: val.color, stroke: val.stroke, dir: val.dir, fint: val.fint});
                       });
-                      var blob = new Blob([window.JSON.stringify({"nodes": thisGraph.nodes, "edges": saveEdges})], {type: "text/plain;charset=utf-8"});
+                    var blob = new Blob([window.JSON.stringify({"nodes": thisGraph.nodes, "edges": saveEdges}, JSONreplacer)], {type: "text/plain;charset=utf-8"});
                       saveAs(blob, name);
                   }
                   else {
@@ -248,7 +249,7 @@
       var json = window.JSON.stringify({
         "nodes": thisGraph.nodes,
         "edges": saveEdges
-      });
+      }, JSONreplacer);
 
       alertify.prompt("Copy JSON", "Copy JSON to the clipboard?", json,
         function save(e, name) {
@@ -279,8 +280,17 @@
         }
       );
     });
+
+
+    // Togle nlrRun
+    this.playNclButton = d3.select("#play-ncl");
+    this.playNclButton.on("click", function(){
+      thisGraph.toggleNCL()
+    });
   };
 
+  
+    
   GraphCreator.prototype.setIdCt = function(idct){
     this.idct = idct;
   };
@@ -301,6 +311,8 @@
     COLOR_KEY: 67,     // C
     FILL_KEY:  70,     // F
     STROKE_KEY: 83,    // S
+    REFLECT_KEY: 82,    // R
+    NCL_KEY:  78,     // N
     DIRECTION_KEY: 68, // D
     nodeRadius: 50,
     nodeMargin: 7,
@@ -320,6 +332,10 @@
       ["#f6fbff"].concat(colorbrewer.Purples[5]),
       ["#f6fbff"].concat(colorbrewer.Oranges[5]),
     ],
+    EDGE_COLORS:[
+      colorbrewer.Reds[5],
+      colorbrewer.Blues[5],
+    ],
     COLOR_INTENSITIES: 6,
     STROKES: [
         "none", // contiguous line
@@ -332,8 +348,16 @@
     ]
   };
 
+  //To remove temporary properties from nodes an edges when exporting to Json
+  function JSONreplacer(key,value)
+  {
+    if (key=="input") return undefined;
+    else if (key=="output") return undefined;
+    else if (key=="degree") return undefined;
+    else return value;
+  }
   /* PROTOTYPE FUNCTIONS */
-
+  
   GraphCreator.prototype.load_graph_from_json = function (json_txt) {
     var thisGraph = this;
     var jsonObj = JSON.parse(json_txt);
@@ -365,6 +389,7 @@
     thisGraph.updateGraph();
     
     thisGraph.undo_manager.clear();
+    thisGraph.stopNCL();
   };
 
   GraphCreator.prototype.centerGraph = function () {
@@ -588,7 +613,7 @@
         state = thisGraph.state;
     d3.event.stopPropagation();
     state.mouseDownNode = d;
-    if (d3.event.shiftKey){
+    if (d3.event.shiftKey && !state.nclRun){
       state.shiftNodeDrag = d3.event.shiftKey;
       // reposition dragged directed edge
       thisGraph.dragLine.classed('hidden', false)
@@ -680,7 +705,7 @@
 
     thisGraph.dragLine.classed("hidden", true);
 
-    if (mouseDownNode !== d){
+    if (mouseDownNode !== d && !state.nclRun){
       // we're in a different node: create new edge for mousedown edge and add to graph
       var newEdge = {source: mouseDownNode, target: d, color: 0, stroke: 0, dir: 1};
       var filtRes = thisGraph.gedges.filter(function(d){
@@ -738,7 +763,7 @@
     if (state.justScaleTransGraph) {
       // dragged not clicked
       state.justScaleTransGraph = false;
-    } else if (state.graphMouseDown && d3.event.shiftKey){
+    } else if (state.graphMouseDown && d3.event.shiftKey && !state.nclRun){
       // clicked not dragged from svg
       var xycoords = d3.mouse(thisGraph.svgG.node()),
           d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1], color: 0, stroke: 0, fint: 0};
@@ -751,7 +776,7 @@
           txtNode = d3txt.node();
       thisGraph.selectElementContents(txtNode);
       txtNode.focus();
-    } else if (state.shiftNodeDrag){
+    } else if (state.shiftNodeDrag && !state.nclRun){
       // dragged from node
       state.shiftNodeDrag = false;
       thisGraph.dragLine.classed("hidden", true);
@@ -771,6 +796,8 @@
     var selectedNode = state.selectedNode,
         selectedEdge = state.selectedEdge;
 
+    nclRun = thisGraph.state.nclRun
+
     switch(d3.event.keyCode) {
     case consts.BACKSPACE_KEY:
     case consts.DELETE_KEY:
@@ -788,15 +815,18 @@
     case consts.COLOR_KEY:
       var next = (d3.event.shiftKey) ? -1 : +1;
       var color = selectedNode? selectedNode.color : selectedEdge.color;
-      color = (color + next) % consts.COLORS.length;
-      if (color < 0)
-          color += consts.COLORS.length;
-
+      
       d3.event.preventDefault();
       if (selectedNode){
+        color = (color + next) % consts.COLORS.length;
+        if (color < 0)
+          color += consts.COLORS.length;
         selectedNode.color = color;
         thisGraph.updateGraph();
       } else if (selectedEdge){
+        color = (color + next) % consts.EDGE_COLORS.length;
+        if (color < 0)
+          color += consts.EDGE_COLORS.length;
         selectedEdge.color = color;
         thisGraph.updateGraph();
       }
@@ -835,6 +865,17 @@
         selectedEdge.dir = !selectedEdge.dir;
         thisGraph.updateGraph();
       }
+      break;
+    case consts.REFLECT_KEY:
+      d3.event.preventDefault();
+      if (selectedEdge){
+        thisGraph.reflectEdge(selectedEdge);
+        thisGraph.updateGraph();
+      }
+      break;
+    case consts.NCL_KEY:
+      d3.event.preventDefault();
+      thisGraph.toggleNCL();
       break;
     case consts.UNDO_KEY:
       if (d3.event.ctrlKey) {
@@ -904,7 +945,7 @@
     gedges.exit().remove();
 
     gedges
-      .style('stroke', function (d) {return consts.COLORS[d.color][MAX_INT_IDX]; })
+      .style('stroke', function (d) {return consts.EDGE_COLORS[d.color][2]; })
       .attr("stroke-dasharray", function (d) {return consts.STROKES[d.stroke]; })
 
     // update existing nodes
@@ -986,7 +1027,8 @@
     thisGraph.nodes.push(d);
 
     thisGraph.undo_manager.add({
-            undo: function () {
+      undo: function () {
+                thisGraph.stopNCL();
                 thisGraph.deleteNodeAndItsEdges(d);
             },
             redo: function () {
@@ -1014,6 +1056,7 @@
     thisGraph.undo_manager.add({
             undo: function () {
                 // reinsert the node at the same position
+                thisGraph.stopNCL();
                 thisGraph.nodes.splice(nodeAt, 0, d);
 
                 // and its edges too
@@ -1034,6 +1077,7 @@
 
     thisGraph.undo_manager.add({
             undo: function () {
+                thisGraph.stopNCL();
                 thisGraph.deleteEdge(e);
             },
             redo: function () {
@@ -1049,6 +1093,7 @@
     
     thisGraph.undo_manager.add({
             undo: function () {
+                thisGraph.stopNCL();
                 thisGraph.edges.splice(edgeAt, 0, e);
             },
             redo: function () {
@@ -1056,6 +1101,100 @@
             }
         });
   };
+
+  GraphCreator.prototype.reflectEdge = function (e) {
+    var thisGraph = this;
+    var temp = e.source;
+    e.source = e.target;
+    e.target = temp;
+    
+    thisGraph.undo_manager.add({
+            undo: function () {
+              thisGraph.reflectEdge(e);
+            },
+            redo: function () {
+              thisGraph.reflectEdge(e);
+            }
+        });
+  };
+
+
+
+  var is_valid_NCL_node =  function(n){
+    if ((n.degree >= 3 && n.input < 2) || (n.degree == 2 && n.input <1) || (n.title == "xor" && n.degree == 3 && n.input != 4)){
+      return false;
+    }
+    else{
+      return true;
+    }
+  };
+
+  GraphCreator.prototype.toggleNCL = function(){
+    var thisGraph = this;
+    if (thisGraph.state.nclRun){
+      thisGraph.stopNCL();
+    }
+    else{
+      thisGraph.startNCL();
+    }
+  };
+  
+  GraphCreator.prototype.startNCL = function(){
+    var thisGraph = this;
+    var button = thisGraph.playNclButton;
+      if (thisGraph.validNCL()){
+        thisGraph.state.nclRun = true;
+        button.classed("fa-play", false);
+        button.classed("fa-stop", true);
+      }
+  };
+
+  GraphCreator.prototype.stopNCL = function(){
+    var thisGraph = this;
+    var button = thisGraph.playNclButton;
+    thisGraph.state.nclRun = false;
+    button.classed("fa-play", true);
+    button.classed("fa-stop", false);
+  };
+  
+  GraphCreator.prototype.validNCL = function(){
+    var thisGraph = this;
+    thisGraph.nodes.forEach(function (n) {
+      n.input = 0;
+      n.output = 0;
+      n.degree = 0;
+    });
+    
+    thisGraph.edges.forEach(function(e) {
+      var colorValue = e.color + 1;
+      e.source.degree += 1;
+      e.source.output += colorValue;
+      e.target.degree += 1;
+      e.target.input += colorValue;
+    });      
+    
+    var valid = true;
+    var updateGraph = false;
+    thisGraph.nodes.forEach(function (n) {
+      if (!is_valid_NCL_node(n)){
+        valid = false;
+        updateGraph = true;
+        n.color = 4;
+        n.fint = 2;
+      }
+      else if ((n.color == 4) && (n.fint == 2)){
+        n.color = 0;
+        n.fint = 0;
+        updateGraph = true;
+      }
+    });
+
+    if (updateGraph){
+      thisGraph.updateGraph()
+    }
+    return valid;
+  };
+  
 
 
   var create_svg_helper = function create_svg_helper(el, width, height) {
@@ -1078,7 +1217,7 @@
   };
 
   var load_help_graph = function (thisGraph) {
-      var data = '{"nodes":[{"id":2,"title":"...over the canvas to create a node","x":-32.8425874710083,"y":327.1973114013672,"color":0,"stroke":0,"fint":0},{"id":4,"title":"...over a node to edit it","x":82.56795167922974,"y":317.9345703125,"color":0,"stroke":0,"fint":0},{"id":5,"title":"Drag the canvas or zoom it with your mouse","x":459.10594940185547,"y":107.95205497741699,"color":2,"stroke":0,"fint":2},{"id":7,"title":"Draw a graph","x":-34.29644012451172,"y":104.17717742919922,"color":0,"stroke":0,"fint":0},{"id":10,"title":"...over a node and drag to another node to draw an arrow","x":-181.8009796142578,"y":333.45040130615234,"color":0,"stroke":0,"fint":0},{"id":12,"title":"Press Delete to delete it","x":181.065185546875,"y":370.3305358886719,"color":0,"stroke":0,"fint":0},{"id":14,"title":"Select a node or an arrow with a left-click","x":327.241943359375,"y":263.88804626464844,"color":0,"stroke":0,"fint":0},{"id":15,"title":"Press shift+left-click over...","x":-33.90104007720947,"y":219.1341094970703,"color":0,"stroke":0,"fint":0},{"id":17,"title":" Left-click and drag to move a node","x":-181.3450927734375,"y":218.22991943359375,"color":0,"stroke":0,"fint":0},{"id":18,"title":"Press ctrl-z to undo the last action","x":-34.092668533325195,"y":436.1949157714844,"color":0,"stroke":0,"fint":0},{"id":19,"title":"Press ctrl-y to redo the last undid action","x":-33.188438415527344,"y":537.9137573242188,"color":0,"stroke":0,"fint":0},{"id":20,"title":"Press C to change its color","x":275.23516845703125,"y":370.43804931640625,"color":0,"stroke":0,"fint":0},{"id":21,"title":"Press S to change the stroke pattern","x":372.23516845703125,"y":376.43804931640625,"color":0,"stroke":0,"fint":0},{"id":22,"title":"Press D to toggle the direction (arrows only)","x":477.23516845703125,"y":265.43804931640625,"color":0,"stroke":0,"fint":0},{"id":23,"title":"Change color, stroke and fill cyclically","x":374.73516845703125,"y":514.1255798339844,"color":0,"stroke":4,"fint":0},{"id":24,"title":"Pressing shift will go backward","x":194.73516845703125,"y":513.1255798339844,"color":0,"stroke":0,"fint":0},{"id":25,"title":"Load/Save from/to a file","x":325.86431884765625,"y":107.46300506591797,"color":2,"stroke":0,"fint":2},{"id":26,"title":"Press F to fill with color (nodes only)","x":477.9895324707031,"y":376.529052734375,"color":0,"stroke":0,"fint":0},{"id":28,"title":"Export to PNG image.","x":190.98953247070312,"y":107.52906036376953,"color":2,"stroke":0,"fint":2}],"edges":[{"source":7,"target":14,"color":0,"stroke":0,"dir":true},{"source":14,"target":12,"color":0,"stroke":0,"dir":true},{"source":7,"target":15,"color":0,"stroke":0,"dir":true},{"source":15,"target":2,"color":0,"stroke":0,"dir":true},{"source":15,"target":4,"color":0,"stroke":0,"dir":true},{"source":7,"target":17,"color":0,"stroke":0,"dir":true},{"source":17,"target":10,"color":0,"stroke":0,"dir":true},{"source":15,"target":10,"color":0,"stroke":0,"dir":true},{"source":10,"target":18,"color":0,"stroke":0,"dir":true},{"source":2,"target":18,"color":0,"stroke":0,"dir":true},{"source":4,"target":18,"color":0,"stroke":0,"dir":true},{"source":12,"target":18,"color":0,"stroke":0,"dir":true},{"source":18,"target":19,"color":0,"stroke":0,"dir":true},{"source":14,"target":20,"color":0,"stroke":0,"dir":true},{"source":14,"target":21,"color":0,"stroke":0,"dir":true},{"source":14,"target":22,"color":0,"stroke":0,"dir":true},{"source":23,"target":20,"color":0,"stroke":4,"dir":true},{"source":23,"target":21,"color":0,"stroke":4,"dir":true},{"source":23,"target":24,"color":0,"stroke":0,"dir":true},{"source":14,"target":26,"color":0,"stroke":0,"dir":1},{"source":23,"target":26,"color":0,"stroke":4,"dir":1}]}';
+      var data = '{"nodes":[{"id":2,"title":"...over the canvas to create a node","x":-32.8425874710083,"y":327.1973114013672,"color":0,"stroke":0,"fint":0},{"id":4,"title":"...over a node to edit it","x":82.56795167922974,"y":317.9345703125,"color":0,"stroke":0,"fint":0},{"id":5,"title":"Drag the canvas or zoom it with your mouse","x":460.2040023803711,"y":53.62371635437012,"color":2,"stroke":0,"fint":2},{"id":7,"title":"Draw a graph","x":-29.29644012451172,"y":80.17717742919922,"color":0,"stroke":0,"fint":0},{"id":10,"title":"...over a node and drag to another node to draw an arrow","x":-181.8009796142578,"y":333.45040130615234,"color":0,"stroke":0,"fint":0},{"id":12,"title":"Press Delete to delete it","x":181.065185546875,"y":370.3305358886719,"color":0,"stroke":0,"fint":0},{"id":14,"title":"Select a node or an arrow with a left-click","x":327.241943359375,"y":263.88804626464844,"color":0,"stroke":0,"fint":0},{"id":15,"title":"Press shift+left-click over...","x":-30.901040077209473,"y":173.1341094970703,"color":0,"stroke":0,"fint":0},{"id":17,"title":" Left-click and drag to move a node","x":-184.3450927734375,"y":182.22991943359375,"color":0,"stroke":0,"fint":0},{"id":18,"title":"Press ctrl-z to undo the last action","x":-34.092668533325195,"y":436.1949157714844,"color":0,"stroke":0,"fint":0},{"id":19,"title":"Press ctrl-y to redo the last undid action","x":-33.188438415527344,"y":537.9137573242188,"color":0,"stroke":0,"fint":0},{"id":20,"title":"Press C to change its color","x":275.23516845703125,"y":370.43804931640625,"color":0,"stroke":0,"fint":0},{"id":21,"title":"Press S to change the stroke pattern","x":372.23516845703125,"y":376.43804931640625,"color":0,"stroke":0,"fint":0},{"id":22,"title":"Press R to reflect the direction (arrows only)","x":477.23516845703125,"y":265.43804931640625,"color":0,"stroke":0,"fint":0},{"id":23,"title":"Change color, stroke and fill cyclically","x":374.73516845703125,"y":514.1255798339844,"color":0,"stroke":4,"fint":0},{"id":24,"title":"Pressing shift will go backward","x":194.73516845703125,"y":513.1255798339844,"color":0,"stroke":0,"fint":0},{"id":25,"title":"Load/Save from/to a file","x":304.15863037109375,"y":53.19884490966797,"color":2,"stroke":0,"fint":2},{"id":26,"title":"Press F to fill with color (nodes only)","x":477.9895324707031,"y":376.529052734375,"color":0,"stroke":0,"fint":0},{"id":28,"title":"Export to PNG image.","x":167.47500610351562,"y":53.26490020751953,"color":2,"stroke":0,"fint":2},{"id":29,"title":"Press play or N to start NCL. ","x":601.1263427734375,"y":50.433448791503906,"color":2,"stroke":0,"fint":2},{"id":30,"title":"","x":-35.157470703125,"y":-18.70977783203125,"color":0,"stroke":0,"fint":0},{"id":31,"title":"","x":147.842529296875,"y":255.29022216796875,"color":0,"stroke":0,"fint":0},{"id":32,"title":"","x":176.95944213867188,"y":316.689697265625,"color":0,"stroke":0,"fint":0},{"id":33,"title":"Input has to be >=2 if degree>=3","x":308.6675720214844,"y":132.39559936523438,"color":2,"stroke":0,"fint":2},{"id":34,"title":"Input >=1 if degree = 2 (wires)","x":453.4269714355469,"y":139.30758666992188,"color":2,"stroke":0,"fint":2}],"edges":[{"source":14,"target":12,"color":0,"stroke":0,"dir":true},{"source":15,"target":2,"color":0,"stroke":0,"dir":true},{"source":7,"target":17,"color":0,"stroke":0,"dir":true},{"source":17,"target":10,"color":0,"stroke":0,"dir":true},{"source":2,"target":18,"color":0,"stroke":0,"dir":true},{"source":12,"target":18,"color":0,"stroke":0,"dir":true},{"source":18,"target":19,"color":0,"stroke":0,"dir":true},{"source":14,"target":20,"color":0,"stroke":0,"dir":true},{"source":14,"target":21,"color":0,"stroke":0,"dir":true},{"source":20,"target":23,"color":0,"stroke":4,"dir":true},{"source":26,"target":23,"color":0,"stroke":4,"dir":1},{"source":24,"target":23,"color":0,"stroke":0,"dir":1},{"source":7,"target":15,"color":0,"stroke":0,"dir":1},{"source":7,"target":14,"color":0,"stroke":0,"dir":1},{"source":14,"target":22,"color":0,"stroke":0,"dir":1},{"source":14,"target":26,"color":0,"stroke":0,"dir":1},{"source":21,"target":23,"color":0,"stroke":0,"dir":1},{"source":15,"target":10,"color":0,"stroke":0,"dir":1},{"source":10,"target":18,"color":0,"stroke":0,"dir":1},{"source":15,"target":4,"color":0,"stroke":0,"dir":1},{"source":4,"target":18,"color":0,"stroke":0,"dir":1},{"source":30,"target":7,"color":1,"stroke":0,"dir":1},{"source":31,"target":15,"color":1,"stroke":0,"dir":1},{"source":31,"target":14,"color":1,"stroke":0,"dir":1},{"source":32,"target":31,"color":1,"stroke":0,"dir":1}]}';
       thisGraph.load_graph_from_json(data);
       thisGraph.centerGraph();
   };
