@@ -37,7 +37,8 @@
       lastKeyDown: -1,
       shiftNodeDrag: false,
       selectedText: null,
-      nclRun: false
+      nclRun: false,
+      nclHelper: true
     };
 
     // define arrow markers for graph links
@@ -286,6 +287,14 @@
     this.playNclButton = d3.select("#play-ncl");
     this.playNclButton.on("click", function(){
       thisGraph.toggleNCL()
+    });
+    var nclHelperButton = d3.select("#ncl-helper");
+    nclHelperButton.on("click", function(){
+      if (!thisGraph.state.nclRun){
+        nclHelperButton.classed("fa-commenting", !nclHelperButton.classed("fa-commenting"));
+        nclHelperButton.classed("fa-comment-o", !nclHelperButton.classed("fa-comment-o"));
+        thisGraph.state.nclHelper = !thisGraph.state.nclHelper;
+      }
     });
   };
 
@@ -877,6 +886,9 @@
         }
         else if(thisGraph.canReflectEdge(selectedEdge)){
           thisGraph.reflectEdge(selectedEdge);
+          if (thisGraph.state.nclHelper){
+            thisGraph.markHelperEdges();
+          }
           thisGraph.updateGraph();
         }
       }
@@ -1179,6 +1191,10 @@
         thisGraph.state.nclRun = true;
         button.classed("fa-play", false);
         button.classed("fa-stop", true);
+        if (thisGraph.state.nclHelper){
+          thisGraph.markHelperEdges();
+        }
+        thisGraph.updateGraph();
       }
   };
 
@@ -1207,27 +1223,36 @@
     });      
     
     var valid = true;
-    var updateGraph = false;
     thisGraph.nodes.forEach(function (n) {
       if (!isValidNCLNode(n)){
         valid = false;
-        updateGraph = true;
         n.color = 4;
         n.fint = 2;
       }
       else if ((n.color == 4) && (n.fint == 2)){
         n.color = 0;
         n.fint = 0;
-        updateGraph = true;
       }
     });
 
-    if (updateGraph){
-      thisGraph.updateGraph()
-    }
     return valid;
   };
+
+  var markHelperEdge = function(e, mark){
+    if (mark){
+      e.stroke = 2;
+    }
+    else{
+      e.stroke = 0;
+    }
+  };
   
+  GraphCreator.prototype.markHelperEdges = function(){
+    var thisGraph = this;
+    thisGraph.edges.forEach(function(e) {
+      markHelperEdge(e, thisGraph.canReflectEdge(e));
+    });
+  };
 
 
   var create_svg_helper = function create_svg_helper(el, width, height) {
@@ -1250,7 +1275,7 @@
   };
 
   var load_help_graph = function (thisGraph) {
-      var data = '{"nodes":[{"id":2,"title":"...over the canvas to create a node","x":-32.8425874710083,"y":327.1973114013672,"color":0,"stroke":0,"fint":0},{"id":4,"title":"...over a node to edit it","x":82.56795167922974,"y":317.9345703125,"color":0,"stroke":0,"fint":0},{"id":5,"title":"Drag the canvas or zoom it with your mouse","x":460.2040023803711,"y":53.62371635437012,"color":2,"stroke":0,"fint":2},{"id":7,"title":"Draw a graph","x":-29.29644012451172,"y":80.17717742919922,"color":0,"stroke":0,"fint":0},{"id":10,"title":"...over a node and drag to another node to draw an arrow","x":-181.8009796142578,"y":333.45040130615234,"color":0,"stroke":0,"fint":0},{"id":12,"title":"Press Delete to delete it","x":181.065185546875,"y":370.3305358886719,"color":0,"stroke":0,"fint":0},{"id":14,"title":"Select a node or an arrow with a left-click","x":327.241943359375,"y":263.88804626464844,"color":0,"stroke":0,"fint":0},{"id":15,"title":"Press shift+left-click over...","x":-30.901040077209473,"y":173.1341094970703,"color":0,"stroke":0,"fint":0},{"id":17,"title":" Left-click and drag to move a node","x":-184.3450927734375,"y":182.22991943359375,"color":0,"stroke":0,"fint":0},{"id":18,"title":"Press ctrl-z to undo the last action","x":-34.092668533325195,"y":436.1949157714844,"color":0,"stroke":0,"fint":0},{"id":19,"title":"Press ctrl-y to redo the last undid action","x":-33.188438415527344,"y":537.9137573242188,"color":0,"stroke":0,"fint":0},{"id":20,"title":"Press C to change its color","x":275.23516845703125,"y":370.43804931640625,"color":0,"stroke":0,"fint":0},{"id":21,"title":"Press S to change the stroke pattern","x":372.23516845703125,"y":376.43804931640625,"color":0,"stroke":0,"fint":0},{"id":22,"title":"Press R to reflect the direction (arrows only)","x":477.23516845703125,"y":265.43804931640625,"color":0,"stroke":0,"fint":0},{"id":23,"title":"Change color, stroke and fill cyclically","x":374.73516845703125,"y":514.1255798339844,"color":0,"stroke":4,"fint":0},{"id":24,"title":"Pressing shift will go backward","x":194.73516845703125,"y":513.1255798339844,"color":0,"stroke":0,"fint":0},{"id":25,"title":"Load/Save from/to a file","x":304.15863037109375,"y":53.19884490966797,"color":2,"stroke":0,"fint":2},{"id":26,"title":"Press F to fill with color (nodes only)","x":477.9895324707031,"y":376.529052734375,"color":0,"stroke":0,"fint":0},{"id":28,"title":"Export to PNG image.","x":167.47500610351562,"y":53.26490020751953,"color":2,"stroke":0,"fint":2},{"id":29,"title":"Press play or N to start NCL. ","x":601.1263427734375,"y":50.433448791503906,"color":2,"stroke":0,"fint":2},{"id":30,"title":"","x":-35.157470703125,"y":-18.70977783203125,"color":0,"stroke":0,"fint":0},{"id":31,"title":"","x":147.842529296875,"y":255.29022216796875,"color":0,"stroke":0,"fint":0},{"id":32,"title":"","x":176.95944213867188,"y":316.689697265625,"color":0,"stroke":0,"fint":0},{"id":33,"title":"Input has to be >=2 if degree>=3","x":308.6675720214844,"y":132.39559936523438,"color":2,"stroke":0,"fint":2},{"id":34,"title":"Input >=1 if degree = 2 (wires)","x":453.4269714355469,"y":139.30758666992188,"color":2,"stroke":0,"fint":2}],"edges":[{"source":14,"target":12,"color":0,"stroke":0,"dir":true},{"source":15,"target":2,"color":0,"stroke":0,"dir":true},{"source":7,"target":17,"color":0,"stroke":0,"dir":true},{"source":17,"target":10,"color":0,"stroke":0,"dir":true},{"source":2,"target":18,"color":0,"stroke":0,"dir":true},{"source":12,"target":18,"color":0,"stroke":0,"dir":true},{"source":18,"target":19,"color":0,"stroke":0,"dir":true},{"source":14,"target":20,"color":0,"stroke":0,"dir":true},{"source":14,"target":21,"color":0,"stroke":0,"dir":true},{"source":20,"target":23,"color":0,"stroke":4,"dir":true},{"source":26,"target":23,"color":0,"stroke":4,"dir":1},{"source":24,"target":23,"color":0,"stroke":0,"dir":1},{"source":7,"target":15,"color":0,"stroke":0,"dir":1},{"source":7,"target":14,"color":0,"stroke":0,"dir":1},{"source":14,"target":22,"color":0,"stroke":0,"dir":1},{"source":14,"target":26,"color":0,"stroke":0,"dir":1},{"source":21,"target":23,"color":0,"stroke":0,"dir":1},{"source":15,"target":10,"color":0,"stroke":0,"dir":1},{"source":10,"target":18,"color":0,"stroke":0,"dir":1},{"source":15,"target":4,"color":0,"stroke":0,"dir":1},{"source":4,"target":18,"color":0,"stroke":0,"dir":1},{"source":30,"target":7,"color":1,"stroke":0,"dir":1},{"source":31,"target":15,"color":1,"stroke":0,"dir":1},{"source":31,"target":14,"color":1,"stroke":0,"dir":1},{"source":32,"target":31,"color":1,"stroke":0,"dir":1}]}';
+      var data = '{"nodes":[{"id":2,"title":"...over the canvas to create a node","x":-32.8425874710083,"y":327.1973114013672,"color":0,"stroke":0,"fint":0},{"id":4,"title":"...over a node to edit it","x":82.56795167922974,"y":317.9345703125,"color":0,"stroke":0,"fint":0},{"id":5,"title":"Drag the canvas or zoom it with your mouse","x":394.87068939208984,"y":1.6237163543701172,"color":2,"stroke":0,"fint":2},{"id":7,"title":"Draw a graph","x":-29.29644012451172,"y":80.17717742919922,"color":0,"stroke":0,"fint":0},{"id":10,"title":"...over a node and drag to another node to draw an arrow","x":-181.8009796142578,"y":333.45040130615234,"color":0,"stroke":0,"fint":0},{"id":12,"title":"Press Delete to delete it","x":181.065185546875,"y":370.3305358886719,"color":0,"stroke":0,"fint":0},{"id":14,"title":"Select a node or an arrow with a left-click","x":327.241943359375,"y":263.88804626464844,"color":0,"stroke":0,"fint":0},{"id":15,"title":"Press shift+left-click over...","x":-30.901040077209473,"y":173.1341094970703,"color":0,"stroke":0,"fint":0},{"id":17,"title":" Left-click and drag to move a node","x":-184.3450927734375,"y":182.22991943359375,"color":0,"stroke":0,"fint":0},{"id":18,"title":"Press ctrl-z to undo the last action","x":-34.092668533325195,"y":436.1949157714844,"color":0,"stroke":0,"fint":0},{"id":19,"title":"Press ctrl-y to redo the last undid action","x":-33.188438415527344,"y":537.9137573242188,"color":0,"stroke":0,"fint":0},{"id":20,"title":"Press C to change its color","x":275.23516845703125,"y":370.43804931640625,"color":0,"stroke":0,"fint":0},{"id":21,"title":"Press S to change the stroke pattern","x":372.23516845703125,"y":376.43804931640625,"color":0,"stroke":0,"fint":0},{"id":22,"title":"Press R to reflect the direction (arrows only)","x":541.9017944335938,"y":266.104736328125,"color":0,"stroke":0,"fint":0},{"id":23,"title":"Change color, stroke and fill cyclically","x":374.73516845703125,"y":514.1255798339844,"color":0,"stroke":4,"fint":0},{"id":24,"title":"Pressing shift will go backward","x":194.73516845703125,"y":513.1255798339844,"color":0,"stroke":0,"fint":0},{"id":25,"title":"Load/Save from/to a file","x":245.491943359375,"y":3.1988449096679688,"color":2,"stroke":0,"fint":2},{"id":26,"title":"Press F to fill with color (nodes only)","x":477.9895324707031,"y":376.529052734375,"color":0,"stroke":0,"fint":0},{"id":28,"title":"Export to PNG image.","x":96.808349609375,"y":-4.735099792480469,"color":2,"stroke":0,"fint":2},{"id":29,"title":"Press play or N to start NCL. ","x":554.4595947265625,"y":0.433441162109375,"color":2,"stroke":0,"fint":2},{"id":30,"title":"","x":-35.157470703125,"y":-18.70977783203125,"color":0,"stroke":0,"fint":0},{"id":31,"title":"","x":147.842529296875,"y":255.29022216796875,"color":0,"stroke":0,"fint":0},{"id":32,"title":"","x":176.95944213867188,"y":316.689697265625,"color":0,"stroke":0,"fint":0},{"id":33,"title":"Input has to be >=2 if degree>=3","x":238.66757202148438,"y":79.72893524169922,"color":2,"stroke":0,"fint":2},{"id":34,"title":"Input >=1 if degree = 2 (wires)","x":365.4269714355469,"y":85.3075942993164,"color":2,"stroke":0,"fint":2},{"id":35,"title":"In NCL mode, the only thing you can do is reflect edges (R)","x":503.35107421875,"y":95.79491424560547,"color":2,"stroke":0,"fint":2},{"id":36,"title":"NCL helper mode (comment on toolbox), automatically marks the edges that can be reflected","x":685.267822265625,"y":92.0577163696289,"color":2,"stroke":0,"fint":2}],"edges":[{"source":14,"target":12,"color":0,"stroke":2,"dir":true},{"source":15,"target":2,"color":0,"stroke":0,"dir":true},{"source":7,"target":17,"color":0,"stroke":0,"dir":true},{"source":17,"target":10,"color":0,"stroke":0,"dir":true},{"source":2,"target":18,"color":0,"stroke":2,"dir":true},{"source":18,"target":12,"color":0,"stroke":2,"dir":true},{"source":18,"target":19,"color":0,"stroke":2,"dir":true},{"source":14,"target":20,"color":0,"stroke":0,"dir":true},{"source":14,"target":21,"color":0,"stroke":0,"dir":true},{"source":20,"target":23,"color":0,"stroke":2,"dir":true},{"source":26,"target":23,"color":0,"stroke":2,"dir":1},{"source":24,"target":23,"color":0,"stroke":2,"dir":1},{"source":15,"target":7,"color":0,"stroke":2,"dir":1},{"source":7,"target":14,"color":0,"stroke":0,"dir":1},{"source":22,"target":14,"color":0,"stroke":0,"dir":1},{"source":14,"target":26,"color":0,"stroke":0,"dir":1},{"source":21,"target":23,"color":0,"stroke":2,"dir":1},{"source":15,"target":10,"color":0,"stroke":0,"dir":1},{"source":10,"target":18,"color":0,"stroke":2,"dir":1},{"source":15,"target":4,"color":0,"stroke":0,"dir":1},{"source":4,"target":18,"color":0,"stroke":2,"dir":1},{"source":30,"target":7,"color":1,"stroke":0,"dir":1},{"source":31,"target":15,"color":1,"stroke":0,"dir":1},{"source":14,"target":31,"color":1,"stroke":0,"dir":1},{"source":31,"target":32,"color":1,"stroke":2,"dir":1}]}';
       thisGraph.load_graph_from_json(data);
       thisGraph.centerGraph();
   };
