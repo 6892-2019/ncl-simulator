@@ -796,11 +796,13 @@
     var selectedNode = state.selectedNode,
         selectedEdge = state.selectedEdge;
 
-    nclRun = thisGraph.state.nclRun
-
+    var nclRun = thisGraph.state.nclRun
     switch(d3.event.keyCode) {
     case consts.BACKSPACE_KEY:
     case consts.DELETE_KEY:
+      if (nclRun){
+        break;
+      }
       d3.event.preventDefault();
       if (selectedNode){
         thisGraph.deleteNodeAndItsEdges(selectedNode);
@@ -823,7 +825,7 @@
           color += consts.COLORS.length;
         selectedNode.color = color;
         thisGraph.updateGraph();
-      } else if (selectedEdge){
+      } else if (selectedEdge && !nclRun){
         color = (color + next) % consts.EDGE_COLORS.length;
         if (color < 0)
           color += consts.EDGE_COLORS.length;
@@ -869,8 +871,14 @@
     case consts.REFLECT_KEY:
       d3.event.preventDefault();
       if (selectedEdge){
-        thisGraph.reflectEdge(selectedEdge);
-        thisGraph.updateGraph();
+        if (!nclRun){
+          thisGraph.reflectEdge(selectedEdge);
+          thisGraph.updateGraph();
+        }
+        else if(thisGraph.canReflectEdge(selectedEdge)){
+          thisGraph.reflectEdge(selectedEdge);
+          thisGraph.updateGraph();
+        }
       }
       break;
     case consts.NCL_KEY:
@@ -1102,25 +1110,50 @@
         });
   };
 
-  GraphCreator.prototype.reflectEdge = function (e) {
+  GraphCreator.prototype.reflectEdge = function (e, userCommand = true) {
     var thisGraph = this;
+
+    
+    if (thisGraph.state.nclRun){
+      var colorValue = e.color + 1;
+      e.source.output -= colorValue;
+      e.source.input += colorValue;
+      e.target.output += colorValue;
+      e.target.input -= colorValue;
+    }
+
     var temp = e.source;
     e.source = e.target;
     e.target = temp;
-    
-    thisGraph.undo_manager.add({
-            undo: function () {
-              thisGraph.reflectEdge(e);
-            },
-            redo: function () {
-              thisGraph.reflectEdge(e);
-            }
-        });
+
+    if (userCommand){
+      thisGraph.undo_manager.add({
+        undo: function () {
+          thisGraph.reflectEdge(e);
+        },
+        redo: function () {
+          thisGraph.reflectEdge(e);
+        }
+      });
+    }
+  };
+  
+  GraphCreator.prototype.canReflectEdge = function (e) {
+    var thisGraph = this;
+    thisGraph.reflectEdge(e, false)
+    var canReflect = false;
+    if (isValidNCLNode(e.source) && isValidNCLNode(e.target)){
+      canReflect = true;
+    }
+    thisGraph.reflectEdge(e, false)
+
+    return canReflect;
   };
 
+  
 
 
-  var is_valid_NCL_node =  function(n){
+  var isValidNCLNode =  function(n){
     if ((n.degree >= 3 && n.input < 2) || (n.degree == 2 && n.input <1) || (n.title == "xor" && n.degree == 3 && n.input != 4)){
       return false;
     }
@@ -1176,7 +1209,7 @@
     var valid = true;
     var updateGraph = false;
     thisGraph.nodes.forEach(function (n) {
-      if (!is_valid_NCL_node(n)){
+      if (!isValidNCLNode(n)){
         valid = false;
         updateGraph = true;
         n.color = 4;
