@@ -363,6 +363,7 @@
     if (key=="input") return undefined;
     else if (key=="output") return undefined;
     else if (key=="degree") return undefined;
+    else if (key=="highlight") return undefined;
     else return value;
   }
   /* PROTOTYPE FUNCTIONS */
@@ -967,6 +968,8 @@
     gedges
       .style('stroke', function (d) {return consts.EDGE_COLORS[d.color][2]; })
       .attr("stroke-dasharray", function (d) {return consts.STROKES[d.stroke]; })
+      .classed("highlight", function (d) {return d.highlight;})
+
 
     // update existing nodes
     thisGraph.gnodes = thisGraph.gnodes.data(thisGraph.nodes, function(d){ return d.id;});
@@ -1240,10 +1243,10 @@
 
   var markHelperEdge = function(e, mark){
     if (mark){
-      e.stroke = 6;
+      e.highlight = true;
     }
     else{
-      e.stroke = 0;
+      e.highlight = false;
     }
   };
   
