@@ -1194,8 +1194,8 @@
         if (thisGraph.state.nclHelper){
           thisGraph.markHelperEdges();
         }
-        thisGraph.updateGraph();
       }
+    thisGraph.updateGraph();
   };
 
   GraphCreator.prototype.stopNCL = function(){
