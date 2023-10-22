@@ -14,6 +14,8 @@ during the 2019 MIT class
 It is a fork of [Mindcraft](https://github.com/eldipa/Mindcraft),
 a mind-mapping tool for drawing directed graphs.
 
+## [Deployed Webapp](https://6892-2019.github.io/ncl-simulator/)
+
 ## Usage
 
 * <kbd>Shift</kbd> + click to create a node.
