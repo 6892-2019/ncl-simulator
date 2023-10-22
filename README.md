@@ -1,27 +1,51 @@
-Mindcraft
-=========
+NCL Simulator
+=============
 
-Simple but quite convenient tool to draw some ideas and create a graph of your thoughts.
+This webapp lets you draw and simulate
+[Nondeterministic Constraint Logic](https://en.wikipedia.org/wiki/Nondeterministic_constraint_logic)
+graphs, which are directed graphs with edge weights of 1 (red) or 2 (blue)
+where every node of degree &ge;3 has an incoming weight of &ge;2 and
+(in this implementation)
+where every node of degree 2 has an incoming weight of &ge;1.
 
-Try it for free: https://bl.ocks.org/eldipa/08a9b0e11a3dd15dcf41fe3dbc5ab645
+This is a fork of [Mindcraft](https://github.com/eldipa/Mindcraft),
+a mind-mapping tool for drawing directed graphs.
 
-Github repository: https://github.com/eldipa/Mindcraft
+## Usage
 
-### Run locally
+* <kbd>Shift</kbd> + click to create a node.
+* <kbd>Shift</kbd> + drag to create edge.
+* Click on an edge and press <kbd>C</kbd> to change colors.
+* <kbd>N</kbd> or press the play button to enter NCL mode.
+  * Helper mode (speech bubble) automatically highlights flippable edges.
+  * Click on an edge and press <kbd>R</kbd> to flip (reflect) it.
+* Drag nodes to move them around
+* Drag the canvas to pan around
+* Scroll wheel to zoom in/out
+* Load/save graph in JSON format via the leftmost buttons
 
-Download it and open the `mindcraft.html` file with an browser. After downloading the code you won't need internet access.
+## Development
 
-If you are using Chrome or Chromium, you will need to open the browser with the `--allow-file-access-from-files` flag, otherwise you will not be able to export the graph as a PNG image (this a limitation of Chrome/Chromium)
+To run the app locally,
+clone the repo and open the `index.html` file with a browser.
+You won't need internet access.
 
-### License
+If you are using Chrome or Chromium, you will need to open the browser with the `--allow-file-access-from-files` flag; otherwise you will not be able to export the graph as a PNG image. (This a limitation of Chrome/Chromium.)
 
-The source code is under the MIT license. See the `LICENSE.md` file. https://opensource.org/licenses/mit-license.html
+## License
 
-The source code is a fork of another project under the same license. 
-Fork: https://github.com/cjrd/directed-graph-creator
+The main source code
+is under the [MIT license](https://opensource.org/licenses/mit-license.html).
+See the [`LICENSE.md`](LICENSE.md) file.
+
+The source code is a fork of
+[Mindcraft](https://github.com/eldipa/Mindcraft),
+which in turn is a fork of
+[directed-graph-creator](https://github.com/cjrd/directed-graph-creator),
+both of which are under the same MIT license.
 
 The current git repository also includes files that aren't covered by this license and belong to other projects.
-You can find them under the `external/` folder.
+You can find them under the [`external/`](external) folder.
 
 To the authors and contributors of those projects, thanks.
 
