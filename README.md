@@ -8,7 +8,10 @@ where every node of degree &ge;3 has an incoming weight of &ge;2 and
 (in this implementation)
 where every node of degree 2 has an incoming weight of &ge;1.
 
-This is a fork of [Mindcraft](https://github.com/eldipa/Mindcraft),
+This project was written by Ivan Tadeu Ferreira Antunes Filho
+during the 2019 MIT class
+[6.892: Algorithmic Lower Bounds: Fun with Hardness Proofs](https://courses.csail.mit.edu/6.892/spring19/).
+It is a fork of [Mindcraft](https://github.com/eldipa/Mindcraft),
 a mind-mapping tool for drawing directed graphs.
 
 ## Usage
